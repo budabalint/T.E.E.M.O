@@ -1,0 +1,30 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "01338185-8375-43ff-9fb2-c8a929b5258f")
+	(paper "A4")
+	(lib_symbols)
+	(hierarchical_label "SDA"
+		(shape input)
+		(at 29.21 25.4 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0cb6fdf4-00a3-4507-90e9-e6edde81c3b5")
+	)
+	(hierarchical_label "SCL"
+		(shape input)
+		(at 29.21 29.21 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "752288a7-4150-4af4-b4fc-2bb8880484ed")
+	)
+)
