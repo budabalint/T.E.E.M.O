@@ -49,7 +49,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.254
+          "min_clearance": 0.2
         }
       },
       "diff_pair_dimensions": [
@@ -59,7 +59,24 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "hole_clearance|102900000|123995000|c12be46e-712e-43cb-92f5-d8dae0b1b31a|0bf84fcf-6c03-4f64-b2c1-6afdb74bbc41",
+          ""
+        ],
+        [
+          "hole_clearance|102900000|123995000|c12be46e-712e-43cb-92f5-d8dae0b1b31a|e506bf3e-c2c1-4ae4-9c21-b3f39983558c",
+          ""
+        ],
+        [
+          "hole_clearance|97100000|123995000|ed3f482b-f754-4f7d-9cc6-480cff12fa24|5ea420b6-d644-4bda-8350-2c911512e12f",
+          ""
+        ],
+        [
+          "hole_clearance|97100000|123995000|ed3f482b-f754-4f7d-9cc6-480cff12fa24|c3b3b560-fd0c-4006-93ab-694d1f220808",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -501,7 +518,7 @@
       {
         "bus_width": 12,
         "clearance": 0.2,
-        "diff_pair_gap": 0.25,
+        "diff_pair_gap": 0.2,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
@@ -542,7 +559,7 @@
     "netclass_patterns": [
       {
         "netclass": "Default",
-        "pattern": "*/D_*"
+        "pattern": "Net-(U8-UD*)"
       }
     ]
   },
@@ -551,10 +568,10 @@
       "gencad": "CM5IOUSB3.cad",
       "idf": "",
       "netlist": "CM5IO.net",
-      "plot": "V1.4.9_GBR/",
+      "plot": "V1.0/",
       "pos_files": "V0_GBR/",
       "specctra_dsn": "",
-      "step": "psu.step",
+      "step": "cansat_all.step",
       "svg": "SVG/",
       "vmrl": "",
       "vrml": ""
@@ -659,13 +676,133 @@
           "label": "Sim.Type",
           "name": "Sim.Type",
           "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description_1",
+          "name": "Description_1",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Height",
+          "name": "Height",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Arrow Price/Stock",
+          "name": "Arrow Price/Stock",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MANUFACTURER",
+          "name": "MANUFACTURER",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MAXIMUM_PACKAGE_HEIGHT",
+          "name": "MAXIMUM_PACKAGE_HEIGHT",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MF",
+          "name": "MF",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MP",
+          "name": "MP",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer_Name",
+          "name": "Manufacturer_Name",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer_Part_Number",
+          "name": "Manufacturer_Part_Number",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Mouser Part Number",
+          "name": "Mouser Part Number",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Mouser Price/Stock",
+          "name": "Mouser Price/Stock",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PARTREV",
+          "name": "PARTREV",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Package",
+          "name": "Package",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Price",
+          "name": "Price",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "SNAPEDA_PN",
+          "name": "SNAPEDA_PN",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "STANDARD",
+          "name": "STANDARD",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Availability",
+          "name": "Availability",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Arrow Part Number",
+          "name": "Arrow Part Number",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "SnapEDA_Link",
+          "name": "SnapEDA_Link",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Check_prices",
+          "name": "Check_prices",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "include_excluded_from_bom": false,
       "name": "",
-      "sort_asc": true,
+      "sort_asc": false,
       "sort_field": "Reference"
     },
     "connection_grid_size": 50.0,
@@ -741,10 +878,6 @@
     [
       "abfe8b12-0810-4844-a114-3af438cfb16c",
       "SGP41"
-    ],
-    [
-      "0b380053-a041-43fb-9432-4d1f17fedf41",
-      "Battery"
     ],
     [
       "1fdf22aa-f65c-46ba-9271-806243cf4ae1",
