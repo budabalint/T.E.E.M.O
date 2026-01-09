@@ -1,0 +1,153 @@
+#include <BNO085.h>
+#include <Arduino.h>
+
+BNO085::BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst) : bno(rst) {
+    _cs = cs;
+    _int = bno_int;
+    _rst = rst;
+    
+    _linAccelData = {0, 0, 0};
+    _gyroData = {0, 0, 0};
+    _gravityData = {0, 0, 0};
+    _magData = {0, 0, 0};
+    _quatData = {0, 0, 0, 0};
+    _newDataAvailable = false;
+}
+
+bool BNO085::begin(SPIClass *spi) {
+    if (!bno.begin_SPI(_cs, _int, spi)) {
+        return false;
+    } 
+    enableSensors();
+    return true;
+}
+
+void BNO085::enableSensors() { 
+    long reportIntervalUs = 2000000; // 50ms = 20Hz frissítés (elég a CanSathoz)
+
+    if (!bno.enableReport(SH2_ROTATION_VECTOR, reportIntervalUs)) {
+        Serial.println("Warning: Rotation vector enable failed");
+    }
+    if (!bno.enableReport(SH2_LINEAR_ACCELERATION, reportIntervalUs)) {
+        Serial.println("Warning: Linear Accel enable failed");
+    }
+    if (!bno.enableReport(SH2_GYROSCOPE_CALIBRATED, reportIntervalUs)) {
+        Serial.println("Warning: Gyro enable failed");
+    }
+    if (!bno.enableReport(SH2_GRAVITY, reportIntervalUs)) {
+        Serial.println("Warning: Gravity enable failed");
+    }
+    if (!bno.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, reportIntervalUs)) {
+        Serial.println("Warning: Magnetometer enable failed");
+    }
+}
+
+void BNO085::update() {
+    if (bno.wasReset()) {
+        enableSensors();
+    }
+
+    while (bno.getSensorEvent(&_sensorValue)) {}
+
+    switch (_sensorValue.sensorId) {
+        
+        case SH2_ROTATION_VECTOR:
+            _quatData.x = _sensorValue.un.rotationVector.i;
+            _quatData.y = _sensorValue.un.rotationVector.j;
+            _quatData.z = _sensorValue.un.rotationVector.k;
+            _quatData.w = _sensorValue.un.rotationVector.real;
+            _newDataAvailable = true;
+            break;
+
+        case SH2_LINEAR_ACCELERATION:
+            _linAccelData.x = _sensorValue.un.linearAcceleration.x;
+            _linAccelData.y = _sensorValue.un.linearAcceleration.y;
+            _linAccelData.z = _sensorValue.un.linearAcceleration.z;
+            _newDataAvailable = true;
+            break;
+
+        case SH2_GYROSCOPE_CALIBRATED:
+            _gyroData.x = _sensorValue.un.gyroscope.x;
+            _gyroData.y = _sensorValue.un.gyroscope.y;
+            _gyroData.z = _sensorValue.un.gyroscope.z;
+            _newDataAvailable = true;
+            break;
+
+        case SH2_GRAVITY:
+            _gravityData.x = _sensorValue.un.gravity.x;
+            _gravityData.y = _sensorValue.un.gravity.y;
+            _gravityData.z = _sensorValue.un.gravity.z;
+            _newDataAvailable = true;
+            break;
+
+        case SH2_MAGNETIC_FIELD_CALIBRATED:
+            _magData.x = _sensorValue.un.magneticField.x;
+            _magData.y = _sensorValue.un.magneticField.y;
+            _magData.z = _sensorValue.un.magneticField.z;
+            _newDataAvailable = true;
+            break;
+    }
+}
+
+bool BNO085::hasNewData() {
+    bool temp = _newDataAvailable;
+    _newDataAvailable = false;
+    return temp;
+}
+
+Rotacio BNO085::getRotation() {
+    return _quatData;
+}
+
+Vector3 BNO085::getLinearAcceleration() {
+    return _linAccelData;
+}
+
+Vector3 BNO085::getGyroscope() {
+    return _gyroData;
+}
+
+Vector3 BNO085::getGravity() {
+    return _gravityData;
+}
+
+Vector3 BNO085::getMagnetometer() {
+    return _magData;
+}
+
+EulerRotacio BNO085::getEulerAngle() {
+    float w = _quatData.w;
+    float x = _quatData.x;
+    float y = _quatData.y;
+    float z = _quatData.z;
+
+    EulerRotacio angle;
+
+    double sinr_cosp = 2 * (w * x + y * z);
+    double cosr_cosp = 1 - 2 * (x * x + y * y);
+    angle.roll = atan2(sinr_cosp, cosr_cosp) * (180.0 / M_PI);
+
+    double sinp = 2 * (w * y - z * x);
+    if (abs(sinp) >= 1)
+        angle.pitch = copysign(M_PI / 2, sinp) * (180.0 / M_PI);
+    else
+        angle.pitch = asin(sinp) * (180.0 / M_PI);
+
+    double siny_cosp = 2 * (w * z + x * y);
+    double cosy_cosp = 1 - 2 * (y * y + z * z);
+    angle.yaw = atan2(siny_cosp, cosy_cosp) * (180.0 / M_PI);
+
+    return angle;
+}
+
+float BNO085::getYaw() {
+    return getEulerAngle().yaw;
+}
+
+float BNO085::getRoll() {
+    return getEulerAngle().roll;
+}
+
+float BNO085::getPitch() {
+    return getEulerAngle().pitch;
+}
