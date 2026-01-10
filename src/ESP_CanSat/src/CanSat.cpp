@@ -5,6 +5,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <SGP30.h>
+#include <Create_Packet.h>
 
 CanSat::CanSat():
     _bno(BNO_INT, BNO_CS, BNO_RST),

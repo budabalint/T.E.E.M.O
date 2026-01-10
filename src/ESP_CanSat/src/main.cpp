@@ -1,15 +1,22 @@
 #include <Arduino.h>
 #include <CanSat.h>
+#include <Create_Packet.h>
 
 CanSat canSat;
+Packet packet;
 
 void setup() {
   canSat.begin();
-  delay(5000);
+  if (packet.CreatePacket_A(1)) {
+    Serial.println("Az A csomag létrehozva");
+  } else {
+    Serial.println("Az A csomag nem jött létre");
+  }
+  delay(1000);
 }
 
 void loop() {
-  canSat._bno.update();
+  /*canSat._bno.update();
   canSat._gps.encode();
 
   float hofok = canSat._bme.readTemperature();
@@ -90,5 +97,10 @@ void loop() {
 
   Serial.println(F("===============================================================\n"));
   
-  delay(1000);
-}
+  delay(1000);*/
+  packet.CreatePacket_A(1);
+  packet.CreatePacket_B(2);
+  packet.PrintRaw_A();
+  packet.PrintRaw_B();
+  delay(5000);
+};
