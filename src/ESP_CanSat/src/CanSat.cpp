@@ -4,11 +4,14 @@
 #include <hardware_pins.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <SGP30.h>
 
 CanSat::CanSat():
     _bno(BNO_INT, BNO_CS, BNO_RST),
     _bme(),
-    _veml()
+    _veml(),
+    _sgp(),
+    _gps()
 {
     
 };
@@ -37,6 +40,18 @@ void CanSat::begin() {
         Serial.println("Sikeres VEML szenzorinicializáció");
     } else {
         Serial.println("Sikertelen VEML inicializáció");
+    }
+
+    if (_sgp.begin()) {
+        Serial.println("Sikeres SGP30 szenzorinicializáció");
+    } else {
+        Serial.println("Sikertelen SGP30 inicializáció");
+    }
+
+    if (_gps.begin(9600)) {
+        Serial.println("Sikeres GPS szenzorinicializáció");
+    } else {
+        Serial.println("Sikertelen GPS inicializáció");
     }
     
     delay(100);

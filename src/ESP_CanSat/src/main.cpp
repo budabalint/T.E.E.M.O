@@ -8,89 +8,87 @@ void setup() {
   delay(5000);
 }
 
-void loop() { 
+void loop() {
+  canSat._bno.update();
+  canSat._gps.encode();
+
   float hofok = canSat._bme.readTemperature();
   float para = canSat._bme.readHumidity();
   float nyomas = canSat._bme.readPressure();
-
-  Serial.print("Homerseklet: ");
-  Serial.print(hofok);
-  Serial.println(" C");
-
-  Serial.print("Paratartalom: ");
-  Serial.print(para);
-  Serial.println(" %");
-
-  Serial.print("Nyomas: ");
-  Serial.print(nyomas);
-  Serial.println(" Pa");
-
-    canSat._bno.update();
-
-    if (canSat._bno.hasNewData()) {
-        
-        float roll = canSat._bno.getRoll();
-        float pitch = canSat._bno.getPitch();
-        float yaw = canSat._bno.getYaw();
-
-        Vector3 linAccel = canSat._bno.getLinearAcceleration();
-        Vector3 gyro = canSat._bno.getGyroscope();
-        Vector3 gravity = canSat._bno.getGravity();
-        Vector3 mag = canSat._bno.getMagnetometer();
-
-        Serial.println("========================================");
-        
-        Serial.println("[ ORIENTACIO ]");
-        Serial.print("Roll:  "); Serial.print(roll); Serial.println(" deg");
-        Serial.print("Pitch: "); Serial.print(pitch); Serial.println(" deg");
-        Serial.print("Yaw:   "); Serial.print(yaw); Serial.println(" deg (Eszak)");
-        Serial.println();
-
-        Serial.println("[ LINEARIS GYORSULAS ]");
-        Serial.print("X: "); Serial.print(linAccel.x); Serial.println(" m/s^2");
-        Serial.print("Y: "); Serial.print(linAccel.y); Serial.println(" m/s^2");
-        Serial.print("Z: "); Serial.print(linAccel.z); Serial.println(" m/s^2");
-        Serial.println();
-
-        Serial.println("[ GIROSZKOP ]");
-        Serial.print("X: "); Serial.print(gyro.x); Serial.println(" rad/s");
-        Serial.print("Y: "); Serial.print(gyro.y); Serial.println(" rad/s");
-        Serial.print("Z: "); Serial.print(gyro.z); Serial.println(" rad/s");
-        Serial.println();
-
-        Serial.println("[ GRAVITACIO ]");
-        Serial.print("X: "); Serial.print(gravity.x); Serial.println(" m/s^2");
-        Serial.print("Y: "); Serial.print(gravity.y); Serial.println(" m/s^2");
-        Serial.print("Z: "); Serial.print(gravity.z); Serial.println(" m/s^2");
-        Serial.println();
-
-        Serial.println("[ MAGNETOMETER ]");
-        Serial.print("X: "); Serial.print(mag.x); Serial.println(" uT");
-        Serial.print("Y: "); Serial.print(mag.y); Serial.println(" uT");
-        Serial.print("Z: "); Serial.print(mag.z); Serial.println(" uT");
-        
-        Serial.println("========================================");
-        Serial.println();
-    }
-
   float lux = canSat._veml.readLux();
   uint16_t white = canSat._veml.readWhite();
 
-  Serial.print("Fenyero (lux): ");
-  Serial.print(lux);
-  Serial.println(" lx");
+  bool iaqSuccess = canSat._sgp.measure();
+  bool rawSuccess = canSat._sgp.measureRaw();
 
-  Serial.print("Feher feny (RAW): ");
-  Serial.println(white);
+  Serial.println(F("\n==================== [ KORNYEZETI ADATOK ] ===================="));
+  
+  Serial.print(F("Homerseklet:  ")); Serial.print(hofok); Serial.print(F(" C"));
+  Serial.print(F("\t\tParatartalom: ")); Serial.print(para); Serial.println(F(" %"));
+  
+  Serial.print(F("Nyomas:       ")); Serial.print(nyomas); Serial.print(F(" Pa"));
+  Serial.print(F("\tFenyero:      ")); Serial.print(lux); Serial.println(F(" lx"));
+  
+  Serial.print(F("Feher feny:   ")); Serial.println(white);
 
+  if (iaqSuccess && rawSuccess) {
+    Serial.println(F("\n---------------------- [ LEVEGOMINOSEG ] ----------------------"));
+    Serial.print(F("eCO2:   ")); Serial.print(canSat._sgp.GetCo2()); Serial.print(F(" ppm"));
+    Serial.print(F("\t\tTVOC:   ")); Serial.print(canSat._sgp.GetTVOC()); Serial.println(F(" ppb"));
+    
+    Serial.print(F("H2 Raw: ")); Serial.print(canSat._sgp.GetH2());
+    Serial.print(F("\t\tEth Raw: ")); Serial.println(canSat._sgp.GetEtanol());
+  } else {
+    Serial.println(F("\n[!] SGP szenzor hiba"));
+  }
 
+  if (canSat._bno.hasNewData()) {
+    float roll = canSat._bno.getRoll();
+    float pitch = canSat._bno.getPitch();
+    float yaw = canSat._bno.getYaw();
+    Vector3 linAccel = canSat._bno.getLinearAcceleration();
+    Vector3 gyro = canSat._bno.getGyroscope();
+    Vector3 gravity = canSat._bno.getGravity();
+    Vector3 mag = canSat._bno.getMagnetometer();
 
+    Serial.println(F("\n--------------------- [ MOZGAS ES POZICIO ] -------------------"));
+    Serial.print(F("Orientacio:   ")); 
+    Serial.print(F("Roll: ")); Serial.print(roll);
+    Serial.print(F(" | Pitch: ")); Serial.print(pitch);
+    Serial.print(F(" | Yaw: ")); Serial.println(yaw);
 
-  Serial.println("----------------------------");
+    Serial.print(F("Lin. Gyors.:  ")); 
+    Serial.print(F("X: ")); Serial.print(linAccel.x); 
+    Serial.print(F(" | Y: ")); Serial.print(linAccel.y); 
+    Serial.print(F(" | Z: ")); Serial.println(linAccel.z);
 
+    Serial.print(F("Giroszkop:    ")); 
+    Serial.print(F("X: ")); Serial.print(gyro.x); 
+    Serial.print(F(" | Y: ")); Serial.print(gyro.y); 
+    Serial.print(F(" | Z: ")); Serial.println(gyro.z);
+
+    Serial.print(F("Magnetometer: ")); 
+    Serial.print(F("X: ")); Serial.print(mag.x); 
+    Serial.print(F(" | Y: ")); Serial.print(mag.y); 
+    Serial.print(F(" | Z: ")); Serial.println(mag.z);
+    
+    Serial.print(F("Gravitacio:   ")); 
+    Serial.print(F("X: ")); Serial.print(gravity.x); 
+    Serial.print(F(" | Y: ")); Serial.print(gravity.y); 
+    Serial.print(F(" | Z: ")); Serial.println(gravity.z);
+  }
+
+  if (canSat._gps.isUpdated()) {
+    Serial.println(F("\n-------------------------- [ GPS ] ----------------------------"));
+    Serial.print(F("Lat: ")); Serial.print(canSat._gps.getLat(), 7);
+    Serial.print(F("\tLng: ")); Serial.print(canSat._gps.getLng(), 7);
+    Serial.print(F("\tSat: ")); Serial.println(canSat._gps.getSatellites());
+    
+    Serial.print(F("Alt: ")); Serial.print(canSat._gps.getAltitude()); Serial.print(F(" m"));
+    Serial.print(F("\tSpd: ")); Serial.print(canSat._gps.getSpeed()); Serial.println(F(" km/h"));
+  }
+
+  Serial.println(F("===============================================================\n"));
   
   delay(1000);
-
-
 }
-

@@ -19,8 +19,8 @@ const uint8_t THERMAL_CAM_I2C_SCL = 5;
 
 const uint8_t RADIO_TX = 41;
 const uint8_t RADIO_RX = 42;
-const uint8_t GPS_TX = 17;
-const uint8_t GPS_RX = 18;
+const uint8_t GPS_TX = 18;
+const uint8_t GPS_RX = 17;
 
 const int BNO_INT = 8;
 const uint8_t CAM_INT = 7;

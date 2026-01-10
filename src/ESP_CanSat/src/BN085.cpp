@@ -23,7 +23,7 @@ bool BNO085::begin(SPIClass *spi) {
 }
 
 void BNO085::enableSensors() { 
-    long reportIntervalUs = 2000000; // 50ms = 20Hz frissítés (elég a CanSathoz)
+    long reportIntervalUs = 50000;
 
     if (!bno.enableReport(SH2_ROTATION_VECTOR, reportIntervalUs)) {
         Serial.println("Warning: Rotation vector enable failed");
@@ -47,45 +47,49 @@ void BNO085::update() {
         enableSensors();
     }
 
-    while (bno.getSensorEvent(&_sensorValue)) {}
+    int biztonsagi_limit = 20;
 
-    switch (_sensorValue.sensorId) {
+    while (bno.getSensorEvent(&_sensorValue) && biztonsagi_limit > 0) {
         
-        case SH2_ROTATION_VECTOR:
-            _quatData.x = _sensorValue.un.rotationVector.i;
-            _quatData.y = _sensorValue.un.rotationVector.j;
-            _quatData.z = _sensorValue.un.rotationVector.k;
-            _quatData.w = _sensorValue.un.rotationVector.real;
-            _newDataAvailable = true;
-            break;
+        biztonsagi_limit--; 
 
-        case SH2_LINEAR_ACCELERATION:
-            _linAccelData.x = _sensorValue.un.linearAcceleration.x;
-            _linAccelData.y = _sensorValue.un.linearAcceleration.y;
-            _linAccelData.z = _sensorValue.un.linearAcceleration.z;
-            _newDataAvailable = true;
-            break;
+        switch (_sensorValue.sensorId) {
+            case SH2_ROTATION_VECTOR:
+                _quatData.x = _sensorValue.un.rotationVector.i;
+                _quatData.y = _sensorValue.un.rotationVector.j;
+                _quatData.z = _sensorValue.un.rotationVector.k;
+                _quatData.w = _sensorValue.un.rotationVector.real;
+                _newDataAvailable = true;
+                break;
 
-        case SH2_GYROSCOPE_CALIBRATED:
-            _gyroData.x = _sensorValue.un.gyroscope.x;
-            _gyroData.y = _sensorValue.un.gyroscope.y;
-            _gyroData.z = _sensorValue.un.gyroscope.z;
-            _newDataAvailable = true;
-            break;
+            case SH2_LINEAR_ACCELERATION:
+                _linAccelData.x = _sensorValue.un.linearAcceleration.x;
+                _linAccelData.y = _sensorValue.un.linearAcceleration.y;
+                _linAccelData.z = _sensorValue.un.linearAcceleration.z;
+                _newDataAvailable = true;
+                break;
 
-        case SH2_GRAVITY:
-            _gravityData.x = _sensorValue.un.gravity.x;
-            _gravityData.y = _sensorValue.un.gravity.y;
-            _gravityData.z = _sensorValue.un.gravity.z;
-            _newDataAvailable = true;
-            break;
+            case SH2_GYROSCOPE_CALIBRATED:
+                _gyroData.x = _sensorValue.un.gyroscope.x;
+                _gyroData.y = _sensorValue.un.gyroscope.y;
+                _gyroData.z = _sensorValue.un.gyroscope.z;
+                _newDataAvailable = true;
+                break;
 
-        case SH2_MAGNETIC_FIELD_CALIBRATED:
-            _magData.x = _sensorValue.un.magneticField.x;
-            _magData.y = _sensorValue.un.magneticField.y;
-            _magData.z = _sensorValue.un.magneticField.z;
-            _newDataAvailable = true;
-            break;
+            case SH2_GRAVITY:
+                _gravityData.x = _sensorValue.un.gravity.x;
+                _gravityData.y = _sensorValue.un.gravity.y;
+                _gravityData.z = _sensorValue.un.gravity.z;
+                _newDataAvailable = true;
+                break;
+
+            case SH2_MAGNETIC_FIELD_CALIBRATED:
+                _magData.x = _sensorValue.un.magneticField.x;
+                _magData.y = _sensorValue.un.magneticField.y;
+                _magData.z = _sensorValue.un.magneticField.z;
+                _newDataAvailable = true;
+                break;
+        }
     }
 }
 
