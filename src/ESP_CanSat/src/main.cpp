@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <CanSat.h>
 #include <Create_Packet.h>
+#include <ThermalCam.h>
 
 CanSat canSat;
 Packet packet;
+ThermalCam cam;
+
 
 void setup() {
   canSat.begin();
@@ -12,10 +15,12 @@ void setup() {
   } else {
     Serial.println("Az A csomag nem jött létre");
   }
+  cam.begin(400000);
   delay(1000);
 }
 
 void loop() {
+
   /*canSat._bno.update();
   canSat._gps.encode();
 
@@ -98,9 +103,24 @@ void loop() {
   Serial.println(F("===============================================================\n"));
   
   delay(1000);*/
-  packet.CreatePacket_A(1);
-  packet.CreatePacket_B(2);
-  packet.PrintRaw_A();
-  packet.PrintRaw_B();
+  for (size_t row = 0; row < 24; row++)
+  {
+      ThermalPacket pck = cam.GetThermalData(row);
+      uint8_t* data = (uint8_t*)&pck;
+      //size_t len = sizeof(ThermalPacket);
+
+      //for (size_t i = 0; i < len; i++) {
+          //if (data[i] < 0x10) Serial.print('0');
+          //Serial.print(data[i], HEX);
+      //}
+      //Serial.println();
+  }
+
+
+  //packet.CreatePacket_A(1);
+  //packet.CreatePacket_B(2);
+  //packet.PrintRaw_A();
+  //packet.PrintRaw_B();
+
   delay(5000);
 };

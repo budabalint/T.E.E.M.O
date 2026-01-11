@@ -25,13 +25,6 @@ bool Packet::CreatePacket_A(int seq) {
     packetA.startByte = 0xFE;
     packetA.sequence = seq;
 
-    bool iaq = canSat._sgp.measure();
-    Serial.println(iaq);
-
-    packetA.temp = (uint16_t)((canSat._bme.readTemperature() + 100.0f) * 100.0f);
-    packetA.hum = (uint16_t)(canSat._bme.readHumidity() * 100.0f);
-    packetA.press = (int32_t)(canSat._bme.readPressure());
-
     canSat._bno.update();
 
     packetA.roll = (int16_t)(canSat._bno.getRoll() * 100.0f);
@@ -53,12 +46,16 @@ bool Packet::CreatePacket_A(int seq) {
     packetA.mag_y = (int16_t)(mag.y * 10.0f);
     packetA.mag_z = (int16_t)(mag.z * 10.0f);
 
+    canSat._sgp.measure();
     packetA.TVOC_index = canSat._sgp.GetTVOC();
     packetA.CO2_index = canSat._sgp.GetCo2();
+
     
-
-    packetA.lux = (uint32_t)canSat._veml.readLux();
-
+    packetA.current1 = 0;
+    packetA.current2 = 0;
+    packetA.voltage1 = 0;
+    packetA.voltage2 = 0;
+    
     packetA.crc = calculateCRC8((uint8_t*)&packetA, sizeof(PacketA) - 1);
 
     return true;
@@ -70,25 +67,21 @@ bool Packet::CreatePacket_B(int seq) {
     packetB.startByte = 0xFE;
     packetB.sequence = seq;
 
+    packetB.temp = (uint16_t)((canSat._bme.readTemperature() + 100.0f) * 100.0f);
+    packetB.hum = (uint16_t)(canSat._bme.readHumidity() * 100.0f);
+    packetB.press = (int32_t)(canSat._bme.readPressure() * 100.0f); //megnézni
+
     canSat._gps.encode();
 
-    if (canSat._gps.isUpdated() || canSat._gps.getSatellites() > 0) {
-        packetB.lat = canSat._gps.getLat();
-        packetB.lng = canSat._gps.getLng();
-        Serial.println("1");
-        packetB.speed = (int32_t)((canSat._gps.getSpeed() / 3.6f) * 100.0f);
-        packetB.alt = (int32_t)(canSat._gps.getAltitude() * 100.0f);
-        packetB.course = 0;
-        packetB.sats = (uint8_t)canSat._gps.getSatellites();
-        packetB.hdop = (uint16_t)(canSat._gps.getHDOP() * 100.0f);
-    }
-
-    packetB.current1 = 0;
-    packetB.current2 = 0;
-    packetB.voltage1 = 0;
-    packetB.voltage2 = 0;
+    packetB.lat = canSat._gps.getLat();
+    packetB.lng = canSat._gps.getLng();
+    packetB.speed = (int32_t)((canSat._gps.getSpeed() / 3.6f) * 100.0f);
+    packetB.alt = (int32_t)(canSat._gps.getAltitude() * 100.0f);
+    packetB.hdop = (uint16_t)(canSat._gps.getHDOP() * 100.0f);
+    packetB.sats = (uint8_t)canSat._gps.getSatellites();
 
     packetB.white = canSat._veml.readWhite();
+    packetB.lux = (uint32_t)canSat._veml.readLux();
 
     packetB.crc = calculateCRC8((uint8_t*)&packetB, sizeof(PacketB) - 1);
 

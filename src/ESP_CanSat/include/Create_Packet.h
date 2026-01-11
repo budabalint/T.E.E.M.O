@@ -11,10 +11,6 @@ public:
         uint8_t startByte = 0xFE;
         uint16_t sequence; 
 
-        uint16_t temp;
-        uint16_t hum;
-        int32_t press;
-
         int16_t roll;
         int16_t pitch;
         int16_t yaw;
@@ -33,7 +29,11 @@ public:
 
         uint16_t TVOC_index;
         uint16_t CO2_index;
-        uint32_t lux;
+
+        uint32_t current1;
+        uint32_t current2;
+        uint16_t voltage1;
+        uint16_t voltage2;
 
         uint8_t crc;
     };
@@ -42,26 +42,23 @@ public:
         uint8_t startByte = 0xFE;
         uint16_t sequence;
 
+        uint16_t temp;
+        uint16_t hum;
+        int32_t press;
+
         float lat;
         float lng;
         int32_t speed;
         int32_t alt;
         uint16_t course;
-        uint8_t sats;
         uint16_t hdop;
-
-        uint32_t current1;
-        uint32_t current2;
-        uint16_t voltage1;
-        uint16_t voltage2;
+        uint8_t sats;
 
         uint16_t white;
+        uint32_t lux;
 
         uint8_t crc;
     };
-
-
-    
 
     PacketA packetA;
     PacketB packetB;
@@ -74,8 +71,4 @@ public:
     void PrintRaw_A();
     void PrintRaw_B();
 
-
-
-private:
-    
 };
