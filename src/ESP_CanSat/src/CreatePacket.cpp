@@ -95,6 +95,8 @@ bool Packet::CreatePacket_B(int seq) {
     return true;
 }
 
+
+
 void Packet::PrintRaw_A() {
     uint8_t *data = (uint8_t*)&packetA;
     size_t len = sizeof(PacketA);

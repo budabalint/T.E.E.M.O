@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <CanSat.h>
+#include <ThermalCam.h>
 
 extern CanSat canSat;
 
@@ -59,12 +60,16 @@ public:
         uint8_t crc;
     };
 
+
+    
+
     PacketA packetA;
     PacketB packetB;
 
     Packet();
     bool CreatePacket_A(int sequence);
     bool CreatePacket_B(int sequence);
+    bool CreateThermalCamPacket(int sequence);
 
     void PrintRaw_A();
     void PrintRaw_B();
