@@ -19,38 +19,74 @@ uint8_t calculateCRC8(const uint8_t *data, size_t len) {
 
 Packet::Packet() {}
 
-bool Packet::CreatePacket_A(int seq) {
+PacketA Packet::CreatePacket_A(int seq) {
+    unsigned long totalStart = micros();
+    unsigned long lastTime = totalStart;
+
     memset(&packetA, 0, sizeof(PacketA));
     
     packetA.startByte = 0xFE;
     packetA.sequence = seq;
 
+    // --- BNO UPDATE ---
     canSat._bno.update();
+    unsigned long now = micros();
+    Serial.print("BNO update: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
 
+    // --- BNO ORIENTATION ---
     packetA.roll = (int16_t)(canSat._bno.getRoll() * 100.0f);
     packetA.pitch = (int16_t)(canSat._bno.getPitch() * 100.0f);
     packetA.yaw = (int16_t)(canSat._bno.getYaw() * 100.0f);
+    
+    now = micros();
+    Serial.print("BNO get Orientation: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
 
+    // --- BNO ACCELERATION ---
     Vector3 acc = canSat._bno.getLinearAcceleration();
     packetA.acc_x = (int16_t)(acc.x * 100.0f);
     packetA.acc_y = (int16_t)(acc.y * 100.0f);
     packetA.acc_z = (int16_t)(acc.z * 100.0f);
 
+    now = micros();
+    Serial.print("BNO get Acc: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- BNO GYRO ---
     Vector3 gyro = canSat._bno.getGyroscope();
     packetA.gyro_x = (int16_t)(gyro.x * 100.0f);
     packetA.gyro_y = (int16_t)(gyro.y * 100.0f);
     packetA.gyro_z = (int16_t)(gyro.z * 100.0f);
 
+    now = micros();
+    Serial.print("BNO get Gyro: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- BNO MAGNETOMETER ---
     Vector3 mag = canSat._bno.getMagnetometer();
     packetA.mag_x = (int16_t)(mag.x * 10.0f);
     packetA.mag_y = (int16_t)(mag.y * 10.0f);
     packetA.mag_z = (int16_t)(mag.z * 10.0f);
 
+    now = micros();
+    Serial.print("BNO get Mag: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- SGP MEASURE ---
     canSat._sgp.measure();
+    now = micros();
+    Serial.print("SGP measure: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- SGP GETTERS ---
     packetA.TVOC_index = canSat._sgp.GetTVOC();
     packetA.CO2_index = canSat._sgp.GetCo2();
-
     
+    now = micros();
+    Serial.print("SGP get values: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
     packetA.current1 = 0;
     packetA.current2 = 0;
     packetA.voltage1 = 0;
@@ -58,80 +94,70 @@ bool Packet::CreatePacket_A(int seq) {
     
     packetA.crc = calculateCRC8((uint8_t*)&packetA, sizeof(PacketA) - 1);
 
-    return true;
+    // --- TOTAL TIME PacketA ---
+    Serial.print(">>> PacketA TOTAL: "); Serial.print(micros() - totalStart); Serial.println(" us");
+    Serial.println("--------------------------------");
+
+    return packetA;
 }
 
-bool Packet::CreatePacket_B(int seq) {
+PacketB Packet::CreatePacket_B(int seq) {
+    unsigned long totalStart = micros();
+    unsigned long lastTime = totalStart;
+
     memset(&packetB, 0, sizeof(PacketB));
 
     packetB.startByte = 0xFE;
     packetB.sequence = seq;
 
+    // --- BME READINGS ---
     packetB.temp = (uint16_t)((canSat._bme.readTemperature() + 100.0f) * 100.0f);
     packetB.hum = (uint16_t)(canSat._bme.readHumidity() * 100.0f);
-    packetB.press = (int32_t)(canSat._bme.readPressure() * 100.0f); //megnézni
+    packetB.press = (int32_t)(canSat._bme.readPressure() * 100.0f); 
 
+    unsigned long now = micros();
+    Serial.print("BME read all: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- GPS ENCODE ---
     canSat._gps.encode();
+    now = micros();
+    Serial.print("GPS encode: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
 
+    // --- GPS GETTERS ---
     packetB.lat = canSat._gps.getLat();
+    Serial.println(packetB.lat);
     packetB.lng = canSat._gps.getLng();
     packetB.speed = (int32_t)((canSat._gps.getSpeed() / 3.6f) * 100.0f);
+    Serial.println(packetB.speed);
     packetB.alt = (int32_t)(canSat._gps.getAltitude() * 100.0f);
+    Serial.println(packetB.alt);
     packetB.hdop = (uint16_t)(canSat._gps.getHDOP() * 100.0f);
+    Serial.println(packetB.hdop);
     packetB.sats = (uint8_t)canSat._gps.getSatellites();
+    Serial.println(packetB.sats);
 
+
+    now = micros();
+    Serial.print("GPS get values: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
+
+    // --- VEML READINGS ---
     packetB.white = canSat._veml.readWhite();
     packetB.lux = (uint32_t)canSat._veml.readLux();
+    Serial.println(packetB.lux);
+    Serial.println(packetB.white);
+
+    now = micros();
+    Serial.print("VEML read all: "); Serial.print(now - lastTime); Serial.println(" us");
+    lastTime = now;
 
     packetB.crc = calculateCRC8((uint8_t*)&packetB, sizeof(PacketB) - 1);
 
-    return true;
-}
+    // --- TOTAL TIME PacketB ---
+    Serial.print(">>> PacketB TOTAL: "); Serial.print(micros() - totalStart); Serial.println(" us");
+    Serial.println("--------------------------------");
 
-
-
-void Packet::PrintRaw_A() {
-    uint8_t *data = (uint8_t*)&packetA;
-    size_t len = sizeof(PacketA);
-
-    Serial.println(F("\n--- PACKET A [RAW BYTES] ---"));
-    for (size_t i = 0; i < len; i++) {
-        Serial.print(F("["));
-        if (i < 10) Serial.print(F("0"));
-        Serial.print(i);
-        Serial.print(F("] : 0x"));
-        
-        if (data[i] < 0x10) Serial.print(F("0"));
-        Serial.print(data[i], HEX);
-
-        if ((i + 1) % 8 == 0) {
-            Serial.println();
-        } else {
-            Serial.print(F("\t"));
-        }
-    }
-    Serial.println(F("\n----------------------------"));
-}
-
-void Packet::PrintRaw_B() {
-    uint8_t *data = (uint8_t*)&packetB;
-    size_t len = sizeof(PacketB);
-
-    Serial.println(F("\n--- PACKET B [RAW BYTES] ---"));
-    for (size_t i = 0; i < len; i++) {
-        Serial.print(F("["));
-        if (i < 10) Serial.print(F("0"));
-        Serial.print(i);
-        Serial.print(F("] : 0x"));
-        
-        if (data[i] < 0x10) Serial.print(F("0"));
-        Serial.print(data[i], HEX);
-
-        if ((i + 1) % 8 == 0) {
-            Serial.println();
-        } else {
-            Serial.print(F("\t"));
-        }
-    }
-    Serial.println(F("\n----------------------------"));
+    return packetB;
 }

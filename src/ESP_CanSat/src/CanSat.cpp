@@ -19,8 +19,10 @@ CanSat::CanSat():
 
 void CanSat::begin() {
     SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
+    SPI.setFrequency(8000000);
     Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);
-    Serial.begin(115200);
+    Wire.setClock(1000000);
+    Serial.begin(4000000);
 
     if (_bme.begin()) {
         Serial.println("BME280 sikeresen elindult!");

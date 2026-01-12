@@ -39,11 +39,11 @@ uint16_t VEML7700::readALS() {
 }
 
 uint16_t VEML7700::readWhite() {
-    return _veml.readWhite();
+    return _veml.readWhite(false);
 }
 
 float VEML7700::readLux() {
-    return _veml.readLux();
+    return _veml.readLux(VEML_LUX_CORRECTED_NOWAIT);
 }
 
 uint16_t VEML7700::getInterruptStatus() {

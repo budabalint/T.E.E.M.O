@@ -24,6 +24,8 @@ uint8_t calculateCRC08(const uint8_t *data, size_t len) {
 ThermalCam::ThermalCam() {};
 
 void ThermalCam::begin(int i2c_speed) {
+    pinMode(THERMAL_CAM_I2C_SDA, INPUT_PULLUP);
+    pinMode(THERMAL_CAM_I2C_SCL, INPUT_PULLUP);
     Wire1.begin(THERMAL_CAM_I2C_SDA, THERMAL_CAM_I2C_SCL); 
     Wire1.setBufferSize(4096);
     
@@ -33,32 +35,27 @@ void ThermalCam::begin(int i2c_speed) {
     MLX90642_SetRefreshRate(MLX_I2C_ADDR, MLX90642_REF_RATE_32HZ);
 }
 
-ThermalPacket ThermalCam::GetThermalData(uint8_t row) {
-    if (row) {
+ThermalPacket ThermalCam::GetThermalData(uint8_t row, uint8_t seq) {
+    if (row == 0) {
         MLX90642_GetFrameData(MLX_I2C_ADDR, mlxAux, mlxRawPix, mlxPixVal);
     }
     
     ThermalPacket packet;
-    packet.sequence = row;
+    packet.id = row;
+    packet.sequence = seq;
     uint8_t Row[40];
-    uint16_t data[4] = {0, 0, 0, 0};
+    uint16_t data[4];
 
     int index = 0;
+    int startPixel = row * 32; 
 
-    //for (size_t i = 0; i < 768; i++)
-    //{
-        //Serial.println(mlxPixVal[i]);
-    //}
-    
+    for (int i = 0; i < 8; i++) {
+        int pIdx = startPixel + (i * 4);
 
-    for (int i = row; i < 8+row; i++) {
-        memcpy(data, &mlxPixVal[i * 8], 8);
-        data[0] /= 5;
-        data[1] /= 5;
-        data[2] /= 5;
-        data[3] /= 5;
-
-        //Serial.println(data[0]);
+        data[0] = (uint16_t)(mlxPixVal[pIdx + 0] / 5);
+        data[1] = (uint16_t)(mlxPixVal[pIdx + 1] / 5);
+        data[2] = (uint16_t)(mlxPixVal[pIdx + 2] / 5);
+        data[3] = (uint16_t)(mlxPixVal[pIdx + 3] / 5);
 
         Row[index++] = (uint8_t)((data[0] >> 2) & 0xFF);
         Row[index++] = (uint8_t)((data[0] & 0x03) << 6) | ((data[1] >> 4) & 0x3F);
@@ -71,5 +68,4 @@ ThermalPacket ThermalCam::GetThermalData(uint8_t row) {
     packet.crc = calculateCRC08((uint8_t*)&packet, sizeof(packet) - 1);
     return packet;
 }
-
 

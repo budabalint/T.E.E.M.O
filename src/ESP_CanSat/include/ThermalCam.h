@@ -4,7 +4,8 @@
 
 struct __attribute__((packed)) ThermalPacket {
     uint8_t startByte = 0xFE;
-    uint16_t sequence;
+    uint8_t id;
+    uint8_t sequence;
 
     uint8_t data[40];
 
@@ -14,7 +15,7 @@ struct __attribute__((packed)) ThermalPacket {
 class ThermalCam {
 public:
     void begin(int i2c_speed);
-    ThermalPacket GetThermalData(uint8_t row);
+    ThermalPacket GetThermalData(uint8_t row, uint8_t seq);
     ThermalCam();
 
 private:

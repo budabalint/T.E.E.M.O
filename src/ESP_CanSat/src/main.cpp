@@ -10,15 +10,12 @@ ThermalCam cam;
 
 void setup() {
   canSat.begin();
-  if (packet.CreatePacket_A(1)) {
-    Serial.println("Az A csomag létrehozva");
-  } else {
-    Serial.println("Az A csomag nem jött létre");
-  }
-  cam.begin(400000);
+  cam.begin(1000000);
   delay(1000);
 }
 
+
+int seq = 0;
 void loop() {
 
   /*canSat._bno.update();
@@ -103,24 +100,19 @@ void loop() {
   Serial.println(F("===============================================================\n"));
   
   delay(1000);*/
-  for (size_t row = 0; row < 24; row++)
-  {
-      ThermalPacket pck = cam.GetThermalData(row);
-      uint8_t* data = (uint8_t*)&pck;
-      size_t len = sizeof(ThermalPacket);
 
-      for (size_t i = 0; i < len; i++) {
-          if (data[i] < 0x10) Serial.print('0');
-          Serial.print(data[i], HEX);
-      }
-      Serial.println();
+  PacketA packet1 = packet.CreatePacket_A(seq++);
+  PacketB packet2 = packet.CreatePacket_B(seq++);
+
+  //uint8_t* pck1 = (uint8_t*)&packet1;
+  //size_t len = sizeof(PacketA);
+  //Serial.write(pck1, len);
+
+  //uint8_t* pck2 = (uint8_t*)&packet2;
+  //Serial.write(pck2, len);
+  Serial.println(seq);
+  if (seq >= 234) {
+    seq = 0;
   }
 
-
-  //packet.CreatePacket_A(1);
-  //packet.CreatePacket_B(2);
-  //packet.PrintRaw_A();
-  //packet.PrintRaw_B();
-
-  delay(5000);
 };
