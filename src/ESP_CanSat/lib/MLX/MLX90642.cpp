@@ -147,15 +147,15 @@ int MLX90642_I2CRead(uint8_t slaveAddr, uint16_t startAddress, uint16_t nMemAddr
     uint8_t buf[128]; 
 
     for (int c = 0; c < chunks; c++) {
-        Wire.beginTransmission(slaveAddr);
-        Wire.write(currentAddr >> 8);
-        Wire.write(currentAddr & 0xFF);
-        if (Wire.endTransmission(false) != 0) return -1; 
+        Wire1.beginTransmission(slaveAddr);
+        Wire1.write(currentAddr >> 8);
+        Wire1.write(currentAddr & 0xFF);
+        if (Wire1.endTransmission(false) != 0) return -1; 
 
         int bytesRequested = chunkSize * 2;
-        if (Wire.requestFrom((int)slaveAddr, bytesRequested) != bytesRequested) return -1;
+        if (Wire1.requestFrom((int)slaveAddr, bytesRequested) != bytesRequested) return -1;
 
-        Wire.readBytes(buf, bytesRequested);
+        Wire1.readBytes(buf, bytesRequested);
 
         for (int i = 0; i < chunkSize; i++) {
             data[dataIdx++] = (uint16_t)(buf[i*2] << 8) | buf[i*2+1];
@@ -164,15 +164,15 @@ int MLX90642_I2CRead(uint8_t slaveAddr, uint16_t startAddress, uint16_t nMemAddr
     }
 
     if (remainder > 0) {
-        Wire.beginTransmission(slaveAddr);
-        Wire.write(currentAddr >> 8);
-        Wire.write(currentAddr & 0xFF);
-        if (Wire.endTransmission(false) != 0) return -1;
+        Wire1.beginTransmission(slaveAddr);
+        Wire1.write(currentAddr >> 8);
+        Wire1.write(currentAddr & 0xFF);
+        if (Wire1.endTransmission(false) != 0) return -1;
 
         int bytesRequested = remainder * 2;
-        if (Wire.requestFrom((int)slaveAddr, bytesRequested) != bytesRequested) return -1;
+        if (Wire1.requestFrom((int)slaveAddr, bytesRequested) != bytesRequested) return -1;
         
-        Wire.readBytes(buf, bytesRequested);
+        Wire1.readBytes(buf, bytesRequested);
 
         for (int i = 0; i < remainder; i++) {
             data[dataIdx++] = (uint16_t)(buf[i*2] << 8) | buf[i*2+1];
@@ -182,18 +182,18 @@ int MLX90642_I2CRead(uint8_t slaveAddr, uint16_t startAddress, uint16_t nMemAddr
 }
 
 int MLX90642_I2CWrite(uint8_t slaveAddr, uint16_t writeAddress, uint16_t data) {
-    Wire.beginTransmission(slaveAddr);
-    Wire.write(writeAddress >> 8);
-    Wire.write(writeAddress & 0xFF);
-    Wire.write(data >> 8);
-    Wire.write(data & 0xFF);
-    return (Wire.endTransmission() == 0) ? 0 : -1;
+    Wire1.beginTransmission(slaveAddr);
+    Wire1.write(writeAddress >> 8);
+    Wire1.write(writeAddress & 0xFF);
+    Wire1.write(data >> 8);
+    Wire1.write(data & 0xFF);
+    return (Wire1.endTransmission() == 0) ? 0 : -1;
 }
 int MLX90642_I2CCmd(uint8_t slaveAddr, uint16_t cmd) {
-    Wire.beginTransmission(slaveAddr);
-    Wire.write(cmd >> 8);
-    Wire.write(cmd & 0xFF);
-    return (Wire.endTransmission() == 0) ? 0 : -1;
+    Wire1.beginTransmission(slaveAddr);
+    Wire1.write(cmd >> 8);
+    Wire1.write(cmd & 0xFF);
+    return (Wire1.endTransmission() == 0) ? 0 : -1;
 }
 int MLX90642_Config(uint8_t slaveAddr, uint16_t writeAddress, uint16_t wData) {
     return MLX90642_I2CWrite(slaveAddr, writeAddress, wData);

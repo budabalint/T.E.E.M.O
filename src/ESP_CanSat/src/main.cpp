@@ -107,13 +107,13 @@ void loop() {
   {
       ThermalPacket pck = cam.GetThermalData(row);
       uint8_t* data = (uint8_t*)&pck;
-      //size_t len = sizeof(ThermalPacket);
+      size_t len = sizeof(ThermalPacket);
 
-      //for (size_t i = 0; i < len; i++) {
-          //if (data[i] < 0x10) Serial.print('0');
-          //Serial.print(data[i], HEX);
-      //}
-      //Serial.println();
+      for (size_t i = 0; i < len; i++) {
+          if (data[i] < 0x10) Serial.print('0');
+          Serial.print(data[i], HEX);
+      }
+      Serial.println();
   }
 
 
