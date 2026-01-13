@@ -23,7 +23,7 @@ bool BNO085::begin(SPIClass *spi) {
 }
 
 void BNO085::enableSensors() { 
-    long reportIntervalUs = 50000;
+    long reportIntervalUs = 5000;
 
     if (!bno.enableReport(SH2_ROTATION_VECTOR, reportIntervalUs)) {
         Serial.println("Warning: Rotation vector enable failed");
@@ -43,14 +43,15 @@ void BNO085::enableSensors() {
 }
 
 void BNO085::update() {
+        unsigned long totalStart = micros();
+
     if (bno.wasReset()) {
         enableSensors();
     }
-
-    int biztonsagi_limit = 20;
+    int biztonsagi_limit = 1;
 
     while (bno.getSensorEvent(&_sensorValue) && biztonsagi_limit > 0) {
-        
+    
         biztonsagi_limit--; 
 
         switch (_sensorValue.sensorId) {
@@ -60,6 +61,7 @@ void BNO085::update() {
                 _quatData.z = _sensorValue.un.rotationVector.k;
                 _quatData.w = _sensorValue.un.rotationVector.real;
                 _newDataAvailable = true;
+
                 break;
 
             case SH2_LINEAR_ACCELERATION:
@@ -67,6 +69,7 @@ void BNO085::update() {
                 _linAccelData.y = _sensorValue.un.linearAcceleration.y;
                 _linAccelData.z = _sensorValue.un.linearAcceleration.z;
                 _newDataAvailable = true;
+                
                 break;
 
             case SH2_GYROSCOPE_CALIBRATED:

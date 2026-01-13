@@ -7,7 +7,7 @@ extern CanSat canSat;
 
 struct __attribute__((packed)) PacketA {
         uint8_t startByte = 0xFE;
-        uint8_t id = 0x18;
+        uint8_t id = 0xAA;
         uint8_t sequence;
 
         int16_t roll;
@@ -39,23 +39,27 @@ struct __attribute__((packed)) PacketA {
 
     struct __attribute__((packed)) PacketB {
         uint8_t startByte = 0xFE;
-        uint8_t id = 0x19;
+        uint8_t id = 0xBB;
         uint8_t sequence;
 
         uint16_t temp;
         uint16_t hum;
         int32_t press;
 
-        float lat;
-        float lng;
+        int lat;
+        int lng;
+
         int32_t speed;
         int32_t alt;
-        uint16_t course;
         uint16_t hdop;
         uint8_t sats;
 
         uint16_t white;
         uint32_t lux;
+        int temp3;
+        int16_t temp1;
+        int8_t temp2;
+
 
         uint8_t crc;
     };
@@ -68,8 +72,8 @@ public:
     PacketB packetB;
 
     Packet();
-    PacketA CreatePacket_A(int sequence);
-    PacketB CreatePacket_B(int sequence);
+    PacketA CreatePacket_A(int sequence, bool debug);
+    PacketB CreatePacket_B(int sequence, bool debug);
     bool CreateThermalCamPacket(int sequence);
 
 };

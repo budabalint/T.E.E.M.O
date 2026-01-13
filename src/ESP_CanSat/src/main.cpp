@@ -100,19 +100,28 @@ void loop() {
   Serial.println(F("===============================================================\n"));
   
   delay(1000);*/
+  
+    for (size_t row = 0; row < 24; row++) {
+      ThermalPacket pck = cam.GetThermalData(row, seq++);
 
-  PacketA packet1 = packet.CreatePacket_A(seq++);
-  PacketB packet2 = packet.CreatePacket_B(seq++);
+      uint8_t* data = reinterpret_cast<uint8_t*>(&pck);
+      size_t len = sizeof(ThermalPacket);
 
-  //uint8_t* pck1 = (uint8_t*)&packet1;
-  //size_t len = sizeof(PacketA);
-  //Serial.write(pck1, len);
-
-  //uint8_t* pck2 = (uint8_t*)&packet2;
-  //Serial.write(pck2, len);
-  Serial.println(seq);
-  if (seq >= 234) {
-    seq = 0;
+      Serial.write(data, len);
   }
 
+
+  PacketA packet1 = packet.CreatePacket_A(seq++, false);
+  uint8_t* pck1 = reinterpret_cast<uint8_t*>(&packet1);
+  size_t lenA = sizeof(PacketA);
+  Serial.write(pck1, lenA);
+
+  PacketB packet2 = packet.CreatePacket_B(seq++, false);
+  uint8_t* pck2 = reinterpret_cast<uint8_t*>(&packet2);
+  size_t lenB = sizeof(PacketB);
+  Serial.write(pck2, lenB);
+
+  if (seq >= 234) {
+      seq = 0;
+  }
 };

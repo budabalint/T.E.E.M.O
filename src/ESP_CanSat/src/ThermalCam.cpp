@@ -41,6 +41,7 @@ ThermalPacket ThermalCam::GetThermalData(uint8_t row, uint8_t seq) {
     }
     
     ThermalPacket packet;
+    packet.startByte = 0xFE;
     packet.id = row;
     packet.sequence = seq;
     uint8_t Row[40];
