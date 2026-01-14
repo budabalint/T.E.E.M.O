@@ -32,8 +32,8 @@ void CanSat::begin() {
     
     if (_bno.begin(&SPI)) {
         Serial.println("Sikeres BNO szenzorinicializáció");
-        
         _bno.enableSensors(); 
+        digitalWrite(BNO_CS, HIGH);
         
     } else {
         Serial.println("Sikertelen BNO inicializáció");

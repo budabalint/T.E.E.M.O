@@ -17,7 +17,7 @@ BNO085::BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst) : bno(rst) {
 bool BNO085::begin(SPIClass *spi) {
     if (!bno.begin_SPI(_cs, _int, spi)) {
         return false;
-    } 
+    }
     enableSensors();
     return true;
 }
@@ -40,6 +40,8 @@ void BNO085::enableSensors() {
     if (!bno.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, reportIntervalUs)) {
         Serial.println("Warning: Magnetometer enable failed");
     }
+    digitalWrite(BNO_CS, HIGH);
+
 }
 
 void BNO085::update() {
@@ -94,6 +96,8 @@ void BNO085::update() {
                 break;
         }
     }
+    digitalWrite(BNO_CS, HIGH);
+
 }
 
 bool BNO085::hasNewData() {
@@ -104,6 +108,7 @@ bool BNO085::hasNewData() {
 
 Rotacio BNO085::getRotation() {
     return _quatData;
+    
 }
 
 Vector3 BNO085::getLinearAcceleration() {

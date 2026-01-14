@@ -39,6 +39,7 @@ PacketA Packet::CreatePacket_A(int seq, bool debug) {
     packetA.roll = (int16_t)(canSat._bno.getRoll() * 100.0f);
     packetA.pitch = (int16_t)(canSat._bno.getPitch() * 100.0f);
     packetA.yaw = (int16_t)(canSat._bno.getYaw() * 100.0f);
+    digitalWrite(BNO_CS, HIGH);
     
     now = micros();
     if (debug) {
@@ -53,6 +54,7 @@ PacketA Packet::CreatePacket_A(int seq, bool debug) {
     packetA.acc_x = (int16_t)(acc.x * 100.0f);
     packetA.acc_y = (int16_t)(acc.y * 100.0f);
     packetA.acc_z = (int16_t)(acc.z * 100.0f);
+    digitalWrite(BNO_CS, HIGH);
 
     now = micros();
     if (debug) {
@@ -67,6 +69,7 @@ PacketA Packet::CreatePacket_A(int seq, bool debug) {
     packetA.gyro_x = (int16_t)(gyro.x * 100.0f);
     packetA.gyro_y = (int16_t)(gyro.y * 100.0f);
     packetA.gyro_z = (int16_t)(gyro.z * 100.0f);
+    digitalWrite(BNO_CS, HIGH);
 
     now = micros();
     if (debug) {
@@ -81,6 +84,7 @@ PacketA Packet::CreatePacket_A(int seq, bool debug) {
     packetA.mag_x = (int16_t)(mag.x * 10.0f);
     packetA.mag_y = (int16_t)(mag.y * 10.0f);
     packetA.mag_z = (int16_t)(mag.z * 10.0f);
+    digitalWrite(BNO_CS, HIGH);
 
     now = micros();
     if (debug) {
