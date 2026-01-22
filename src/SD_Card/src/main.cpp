@@ -39,34 +39,16 @@ void setup() {
         return;
     }
 
-    if (!file.open("data.bin", O_RDWR | O_CREAT | O_TRUNC)) {
+    if (!file.open("faszabence.bin", O_RDWR | O_CREAT | O_TRUNC)) {
         Serial.println("file open failled");
         return;
     }
+    memset(buf, 0xB2, 4096);
+    file.write(buf, 4096);
+    file.sync();
 }
 
 void loop() {
-    while (bufOffset + PACKET_SIZE <= BUF_SIZE) {
-        if (packetCounter % 2 == 0) {
-            StructA pktA;
-            pktA.header = 0xAA55AA55;
-            pktA.id = packetCounter;
-            memset(pktA.data, 0x01, sizeof(pktA.data));
-            memcpy(&buf[bufOffset], &pktA, PACKET_SIZE);
-        } else {
-            StructB pktB;
-            pktB.header = 0xBB66BB66;
-            for (int i = 0; i < 10; i++) {
-                pktB.values[i] = (float)packetCounter * 0.1f;
-            }
-            memcpy(&buf[bufOffset], &pktB, PACKET_SIZE);
-        }
-        
-        bufOffset += PACKET_SIZE;
-        packetCounter++;
-    }
-
-    file.write(buf, bufOffset);
-    
-    bufOffset = 0;
+    delay(1000);
+    Serial.println("1");
 }

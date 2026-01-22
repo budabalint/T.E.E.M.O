@@ -7,7 +7,7 @@ const int Sensor_SPI_SCL = 12;
 
 const uint8_t BNO_CS = 16;
 const uint8_t RADIO_24GHZ_CS = 14;
-const uint8_t SD_CARD_CS = 45;
+const uint8_t SD_CARD_CS = 10; //45
 const uint8_t CAM_CS = 15;
 
 
