@@ -1,61 +1,72 @@
 #include <Arduino.h>
 #include <SPI.h>
-#include <SD.h>
-#include <FS.h> // ESP32 fájlrendszer kezelő
+#include <SdFat.h>
 
-// --- A TE LÁBKIOSZTÁSOD ---
-const int PIN_CS   = 10;
-const int PIN_MOSI = 11;
-const int PIN_MISO = 13;
-const int PIN_SCK  = 12;
+#define SD_MISO  13
+#define SD_SCK   12
+#define SD_MOSI  11
+#define SD_CS    10
+#define SPI_FREQ SD_SCK_MHZ(8)
+
+const size_t BUF_SIZE = 4096;
+const size_t PACKET_SIZE = 44;
+
+struct __attribute__((packed)) StructA {
+    uint32_t header;
+    uint32_t id;
+    uint8_t data[36];
+};
+
+struct __attribute__((packed)) StructB {
+    uint32_t header;
+    float values[10];
+};
+
+uint8_t buf[BUF_SIZE];
+size_t bufOffset = 0;
+uint32_t packetCounter = 0;
+
+SdFs sd;
+FsFile file;
 
 void setup() {
-  Serial.begin(4000000);
-  while (!Serial) { delay(10); } // Várunk a Serialra
-
-  Serial.println("\n--- SD.h Teszt Inditasa ---");
-
-  // 1. SPI beállítása manuálisan
-  // A sorrend ESP32-nél: sck, miso, mosi, ss
-  SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, PIN_CS);
-
-  // 2. SD kártya indítása
-  // Átadjuk neki a CS lábat és a már beállított SPI buszt
-  if (!SD.begin(PIN_CS, SPI)) {
-    Serial.println("HIBA: SD kartya nem indult el!");
-    Serial.println("- Ellenorizd a kabelt!");
-    Serial.println("- Ellenorizd, hogy FAT32-re van-e formazva!");
-    return;
-  }
-  
-  Serial.println("KARTYA OK! Tipusanak lekerdezese...");
-  
-  uint8_t cardType = SD.cardType();
-  if(cardType == CARD_NONE){
-    Serial.println("Hiba: Nem csatlakozik kartya.");
-    return;
-  }
-
-  // 3. Fájl írás teszt
-  Serial.println("Fajl letrehozasa: /teszt_sd.txt");
-  
-  // FILE_WRITE = létrehozza, vagy ha létezik, a végére ír
-  File myFile = SD.open("/teszt_sd.txt", FILE_WRITE);
-
-  if (false) {
-    Serial.print("Iras a fajlba...");
-    myFile.println("Szia! Ez egy teszt iras az SD.h konyvtarral.");
-    myFile.println("Mukodik a kartya a 45-os labon!");
+    Serial.begin(115200);
     
-    // FONTOS: Bezáráskor mentődik el ténylegesen
-    myFile.close();
-    Serial.println(" KESZ.");
-    Serial.println("Most mar kiveheted a kartyat es megnezheted gepen.");
-  } else {
-    Serial.println("HIBA: Nem sikerult megnyitni a fajlt irasra.");
-  }
+    SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+
+    if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SPI_FREQ, &SPI))) {
+        Serial.println("sd init failled");
+        return;
+    }
+
+    if (!file.open("data.bin", O_RDWR | O_CREAT | O_TRUNC)) {
+        Serial.println("file open failled");
+        return;
+    }
 }
 
 void loop() {
-  // Nem csinálunk semmit
+    while (bufOffset + PACKET_SIZE <= BUF_SIZE) {
+        if (packetCounter % 2 == 0) {
+            StructA pktA;
+            pktA.header = 0xAA55AA55;
+            pktA.id = packetCounter;
+            memset(pktA.data, 0x01, sizeof(pktA.data));
+            memcpy(&buf[bufOffset], &pktA, PACKET_SIZE);
+        } else {
+            StructB pktB;
+            pktB.header = 0xBB66BB66;
+            for (int i = 0; i < 10; i++) {
+                pktB.values[i] = (float)packetCounter * 0.1f;
+            }
+            memcpy(&buf[bufOffset], &pktB, PACKET_SIZE);
+        }
+        
+        bufOffset += PACKET_SIZE;
+        packetCounter++;
+    }
+
+    file.write(buf, bufOffset);
+    
+    bufOffset = 0;
 }
