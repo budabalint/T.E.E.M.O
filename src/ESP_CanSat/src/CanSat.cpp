@@ -6,6 +6,8 @@
 #include <Wire.h>
 #include <SGP30.h>
 #include <Create_Packet.h>
+#include <config.h>
+
 
 #define SPI_FREQ SD_SCK_MHZ(8)
 
@@ -16,7 +18,8 @@ CanSat::CanSat():
     _sgp(),
     _gps(),
     _sd(),
-    _file()
+    _file(),
+    _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600)
 {
     
 };
@@ -72,6 +75,67 @@ void CanSat::begin() {
     } else {
         Serial.println("sd init sucess");
     }
+    canSat.RadioSetconfig();
+
+
+}
+
+void CanSat::RadioSetconfig() {
+    delay(1000);
+
+    pinMode(RADIO_433MHZ_M1, OUTPUT);
+    pinMode(RADIO_433MHZ_M0, OUTPUT);
+    digitalWrite(RADIO_433MHZ_M1, HIGH);
+    digitalWrite(RADIO_433MHZ_M0, HIGH);
+    delay(1000);
+
+    _433radio.begin();
+    delay(200);
+
+    while(Serial2.available()) {
+        Serial2.read();
+    }
+
+    ResponseStructContainer c = _433radio.getConfiguration();
+
+    if (c.status.code == E220_SUCCESS) {
+        Configuration configuration = *(Configuration*) c.data;
+
+        configuration.ADDH = SRC_ADDH;
+        configuration.ADDL = SRC_ADDL;
+        configuration.CHAN = CHANNEL;
+
+        configuration.SPED.airDataRate = AIR_DATA_RATE_000_24;
+        configuration.SPED.uartBaudRate = UART_BPS_9600;
+        configuration.SPED.uartParity = MODE_00_8N1;
+
+        configuration.OPTION.transmissionPower = POWER_10;
+        configuration.OPTION.subPacketSetting = SPS_200_00;
+        configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
+
+        configuration.TRANSMISSION_MODE.enableRSSI = RSSI_DISABLED;
+        configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION;
+        configuration.TRANSMISSION_MODE.enableLBT = LBT_DISABLED;
+        configuration.TRANSMISSION_MODE.WORPeriod = WOR_2000_011;
+
+        ResponseStatus rs = _433radio.setConfiguration(configuration, WRITE_CFG_PWR_DWN_SAVE);
+        Serial.println(rs.getResponseDescription());
+    } else {
+        Serial.println(c.status.getResponseDescription());
+    }
+    c.close();
+
+    _433radio.setMode(MODE_0_NORMAL);
+}
+
+
+void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size) {
+    ResponseStatus rs = _433radio.sendFixedMessage(addh, addl, chan, msg, size);
     
-    delay(100);
+    if (rs.code != E220_SUCCESS) {
+        Serial.print("Send Error: ");
+        Serial.println(rs.getResponseDescription());
+    } else {
+        Serial.println(rs.getResponseDescription());
+    }
 }

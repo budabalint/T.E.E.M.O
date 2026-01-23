@@ -3,6 +3,7 @@
 #include <Create_Packet.h>
 #include <ThermalCam.h>
 #include <SdFat.h>
+#include <config.h>
 
 CanSat canSat;
 Packet packet;
@@ -25,8 +26,9 @@ void loop() {
       ThermalPacket pck;
       memset(&pck, 0xAA, 44);
       uint8_t* data = reinterpret_cast<uint8_t*>(&pck);
-      size_t len = sizeof(ThermalPacket);
-      canSat._file.write(data, len);
+      //size_t len = sizeof(ThermalPacket);
+      //canSat._file.write(data, len);
+      canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, data, sizeof(data));
   }
 
 
@@ -35,7 +37,8 @@ void loop() {
   memset(&packet1, 0xBB, 44);
   uint8_t* pck1 = reinterpret_cast<uint8_t*>(&packet1);
   size_t lenA = sizeof(PacketA);
-  canSat._file.write(pck1, lenA);
+  //canSat._file.write(pck1, lenA);
+  canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, pck1, sizeof(pck1));
 
 
   PacketB packet2;
@@ -43,8 +46,10 @@ void loop() {
   memset(&packet2, 0xCC, 44);
   uint8_t* pck2 = reinterpret_cast<uint8_t*>(&packet2);
   size_t lenB = sizeof(PacketB);
-  canSat._file.write(pck2, lenB);
-  canSat._file.sync();
+  //canSat._file.write(pck2, lenB);
+  //canSat._file.sync();
+  canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, pck2, sizeof(pck2));
+
 
 
 };

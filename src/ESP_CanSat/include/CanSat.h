@@ -8,6 +8,7 @@
 #include <SGP30.h>
 #include <GPS.h>
 #include <SdFat.h>
+#include <LoRa_E220.h>
 
 class CanSat {
 public:
@@ -18,8 +19,11 @@ public:
     GPS _gps;
     SdFat _sd;
     SdFile _file;
+    LoRa_E220 _433radio;
     CanSat();
     void begin();
+    void RadioSetconfig();
+    void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
 
 
 private:
