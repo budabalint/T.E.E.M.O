@@ -21,7 +21,13 @@ uint8_t calculateCRC08(const uint8_t *data, size_t len) {
     return crc;
 }
 
-ThermalCam::ThermalCam() {};
+ThermalCam::ThermalCam() {
+    writePtr = bufferA;
+    readPtr = bufferB;
+    newFrameReady = false;
+    bufferMutex = xSemaphoreCreateMutex();
+}
+
 
 void ThermalCam::begin(int i2c_speed) {
     pinMode(THERMAL_CAM_I2C_SDA, INPUT_PULLUP);
@@ -35,38 +41,64 @@ void ThermalCam::begin(int i2c_speed) {
     MLX90642_SetRefreshRate(MLX_I2C_ADDR, MLX90642_REF_RATE_32HZ);
 }
 
-ThermalPacket ThermalCam::GetThermalData(uint8_t row, uint8_t seq) {
-    if (row == 0) {
-        MLX90642_GetFrameData(MLX_I2C_ADDR, mlxAux, mlxRawPix, mlxPixVal);
-    }
+
+bool ThermalCam::captureFrameToBuffer() {
+    int status = MLX90642_GetFrameData(MLX_I2C_ADDR, mlxAux, mlxRawPix, writePtr);
     
+    if (status < 0) return false;
+
+    xSemaphoreTake(bufferMutex, portMAX_DELAY);
+    newFrameReady = true;
+    xSemaphoreGive(bufferMutex);
+    
+    return true;
+}
+
+
+void ThermalCam::swapBuffersIfNew() {
+    if (xSemaphoreTake(bufferMutex, 10) == pdTRUE) {
+        if (newFrameReady) {
+            uint16_t* temp = readPtr;
+            readPtr = writePtr;
+            writePtr = temp;
+            
+            newFrameReady = false;
+        }
+        xSemaphoreGive(bufferMutex);
+    }
+}
+
+ThermalPacket ThermalCam::getPacketFromBuffer(uint8_t row, uint8_t seq) {
     ThermalPacket packet;
     packet.startByte = 0xFE;
     packet.id = row;
     packet.sequence = seq;
-    uint8_t Row[40];
-    uint16_t data[4];
+    
+    uint16_t* currentPixels = readPtr; 
 
+    uint8_t RowBytes[40];
+    uint16_t data[4];
     int index = 0;
-    int startPixel = row * 32; 
+    int startPixel = row * 32;
 
     for (int i = 0; i < 8; i++) {
         int pIdx = startPixel + (i * 4);
+        
+        if (pIdx + 3 >= MLX90642_TOTAL_NUMBER_OF_PIXELS) break;
 
-        data[0] = (uint16_t)(mlxPixVal[pIdx + 0] / 5);
-        data[1] = (uint16_t)(mlxPixVal[pIdx + 1] / 5);
-        data[2] = (uint16_t)(mlxPixVal[pIdx + 2] / 5);
-        data[3] = (uint16_t)(mlxPixVal[pIdx + 3] / 5);
+        data[0] = (uint16_t)(currentPixels[pIdx + 0] / 5);
+        data[1] = (uint16_t)(currentPixels[pIdx + 1] / 5);
+        data[2] = (uint16_t)(currentPixels[pIdx + 2] / 5);
+        data[3] = (uint16_t)(currentPixels[pIdx + 3] / 5);
 
-        Row[index++] = (uint8_t)((data[0] >> 2) & 0xFF);
-        Row[index++] = (uint8_t)((data[0] & 0x03) << 6) | ((data[1] >> 4) & 0x3F);
-        Row[index++] = (uint8_t)((data[1] & 0x0F) << 4) | ((data[2] >> 6) & 0x0F);
-        Row[index++] = (uint8_t)((data[2] & 0x3F) << 2) | ((data[3] >> 8) & 0x03);
-        Row[index++] = (uint8_t)(data[3] & 0xFF);
+        RowBytes[index++] = (uint8_t)((data[0] >> 2) & 0xFF);
+        RowBytes[index++] = (uint8_t)((data[0] & 0x03) << 6) | ((data[1] >> 4) & 0x3F);
+        RowBytes[index++] = (uint8_t)((data[1] & 0x0F) << 4) | ((data[2] >> 6) & 0x0F);
+        RowBytes[index++] = (uint8_t)((data[2] & 0x3F) << 2) | ((data[3] >> 8) & 0x03);
+        RowBytes[index++] = (uint8_t)(data[3] & 0xFF);
     }
 
-    memcpy(packet.data, Row, 40);
+    memcpy(packet.data, RowBytes, 40);
     packet.crc = calculateCRC08((uint8_t*)&packet, sizeof(packet) - 1);
     return packet;
 }
-

@@ -76,4 +76,10 @@ public:
     PacketB CreatePacket_B(int sequence, bool debug);
     bool CreateThermalCamPacket(int sequence);
 
+private:
+    uint16_t* PacketA_ReadPtr;
+    uint16_t* PacketA_WritePtr;
+    
+    uint16_t* PacketB_ReadPtr;
+    uint16_t* PacketB_WritePtr;
 };

@@ -4,12 +4,65 @@
 #include <ThermalCam.h>
 #include <SdFat.h>
 #include <config.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 CanSat canSat;
 Packet packet;
 ThermalCam cam;
 
 uint8_t SD_BUFFER[16384];
+
+void TaskRadioSender(void *pvParameters) {
+  int sequenceCounter = 0;
+  while (1) {
+    cam.swapBuffersIfNew();
+
+    for (int chunk = 0; chunk < 3; chunk++) {
+      for (int i = 0; i < 8; i++) {
+        int currentRow = (chunk * 8) + i;
+        ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, sequenceCounter);
+        canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&tPacket, sizeof(ThermalPacket));
+      }
+
+      PacketA pA;
+      memset(&pA, 0xBB, sizeof(PacketA));
+      canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&pA, sizeof(PacketA));
+
+      PacketB pB;
+      memset(&pB, 0xCC, sizeof(PacketB));
+      canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&pB, sizeof(PacketB));
+    }
+
+    sequenceCounter++;
+  }
+}
+
+void ReadI2CSensors() {
+  while(1) {
+
+  }
+}
+
+void ReadThermalCam(void *pvParameters) {
+  while (1)
+  {
+    cam.captureFrameToBuffer();
+  }
+}
+
+void SPICommunication() {
+  while (1)
+  {
+
+  }
+}
+
+void Imageprocess() {
+  while(1) {
+
+  }
+}
 
 void setup() {
   canSat.begin();
