@@ -24,20 +24,20 @@ void TaskRadioSender(void *pvParameters) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, sequenceCounter);
         canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&tPacket, sizeof(ThermalPacket));
-        vTaskDelay(pdMS_TO_TICKS(15));
+        vTaskDelay(pdMS_TO_TICKS(12)); 
       }
 
       packet.PreparePacketA_ForSending();
       uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr(); 
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
       
-      vTaskDelay(pdMS_TO_TICKS(15));
+      vTaskDelay(pdMS_TO_TICKS(12));
 
       packet.PreparePacketB_ForSending();
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataB, sizeof(PacketB));
       
-      vTaskDelay(pdMS_TO_TICKS(15));
+      vTaskDelay(pdMS_TO_TICKS(12));
     }
 
     sequenceCounter++;
@@ -57,7 +57,7 @@ void SPICommunication(void *pvParameters) {
     {
         packet.WriteBNODataToBuffer(seq);
         seq++;
-        vTaskDelay(pdMS_TO_TICKS(20));
+        vTaskDelay(pdMS_TO_TICKS(10)); 
     }
 }
 
@@ -66,14 +66,8 @@ void ReadI2CSensors(void *pvParameters) {
     while(1) {
         packet.WriteI2CSensorDataToBuffer(seq);
         seq++;
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
-}
-
-void Imageprocess(void *pvParameters) {
-  while(1) {
-      vTaskDelay(pdMS_TO_TICKS(1000));
-  }
 }
 
 void setup() {
@@ -81,15 +75,14 @@ void setup() {
   dataMutex = xSemaphoreCreateMutex();
   
   canSat.begin();
-  delay(50);
+  delay(100);
   cam.begin(1000000);
+  delay(100);
 
-  xTaskCreatePinnedToCore(TaskRadioSender,"RadioSender",8192, NULL, 2, NULL, 0);
-  xTaskCreatePinnedToCore(Imageprocess,"ImgProc",4096, NULL, 1, NULL, 0);
-
-  xTaskCreatePinnedToCore(ReadThermalCam,"ThermalReader",4096, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(SPICommunication,"SPI_BNO", 4096, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(ReadI2CSensors,"I2C_Sensors", 4096, NULL, 1, NULL, 1);
+  //xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    8192, NULL, 2, NULL, 0);
 }
 
 void loop() {

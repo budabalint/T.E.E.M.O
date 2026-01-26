@@ -17,6 +17,11 @@ uint8_t calculateCRC8(const uint8_t *data, size_t len) {
 }
 
 Packet::Packet() {
+    memset(&packetA_1, 0, sizeof(PacketA));
+    memset(&packetA_2, 0, sizeof(PacketA));
+    memset(&packetB_1, 0, sizeof(PacketB));
+    memset(&packetB_2, 0, sizeof(PacketB));
+
     PacketA_ReadPtr = &packetA_1;
     PacketA_WritePtr = &packetA_2;
     PacketB_ReadPtr = &packetB_1;
@@ -33,6 +38,7 @@ PacketB* Packet::getPacketB_ReadPtr() {
 
 void Packet::WriteI2CSensorDataToBuffer(int currentSeq) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
+        
         canSat._sgp.measure();
         PacketA_WritePtr->TVOC_index = canSat._sgp.GetTVOC();
         PacketA_WritePtr->CO2_index = canSat._sgp.GetCo2();
@@ -41,8 +47,6 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq) {
         PacketA_WritePtr->current2 = 0;
         PacketA_WritePtr->voltage1 = 0;
         PacketA_WritePtr->voltage2 = 0;
-
-        memset(PacketB_WritePtr, 0, sizeof(PacketB));
 
         PacketB_WritePtr->startByte = 0xFE;
         PacketB_WritePtr->id = 0xBB;
@@ -70,7 +74,6 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq) {
 
 void Packet::WriteBNODataToBuffer(int currentSeq) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
-        memset(PacketA_WritePtr, 0, sizeof(PacketA));
         
         PacketA_WritePtr->startByte = 0xFE;
         PacketA_WritePtr->id = 0xAA;
@@ -104,6 +107,7 @@ void Packet::WriteBNODataToBuffer(int currentSeq) {
         PacketA_WritePtr->mag_z = (int16_t)(mag.z * 10.0f);
         
         digitalWrite(BNO_CS, HIGH);
+        
         xSemaphoreGive(dataMutex);
     }
 }
