@@ -22,8 +22,8 @@ public:
     ThermalCam();
 
 private:
-    uint16_t bufferA[MLX90642_TOTAL_NUMBER_OF_PIXELS];
-    uint16_t bufferB[MLX90642_TOTAL_NUMBER_OF_PIXELS];
+    uint16_t bufferA[MLX90642_TOTAL_NUMBER_OF_PIXELS+2];
+    uint16_t bufferB[MLX90642_TOTAL_NUMBER_OF_PIXELS+2];
 
 
     uint16_t* writePtr;

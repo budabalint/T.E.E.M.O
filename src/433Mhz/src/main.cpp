@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <LoRa_E220.h>
 
-const uint8_t ESP_RX_PIN = 5;
-const uint8_t ESP_TX_PIN = 6;
-const uint8_t AUX_PIN = 4;
-const uint8_t M1_PIN = 7;
-const uint8_t M0_PIN = 8;
+const uint8_t ESP_RX_PIN = 42;
+const uint8_t ESP_TX_PIN = 41;
+const uint8_t AUX_PIN = 10;
+const uint8_t M1_PIN = 47;
+const uint8_t M0_PIN = 48;
 
 const uint8_t SRC_ADDH = 0;
 const uint8_t SRC_ADDL = 1;
