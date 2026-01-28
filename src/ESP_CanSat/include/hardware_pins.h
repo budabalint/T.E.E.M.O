@@ -17,8 +17,8 @@ const uint8_t SENSOR_I2C_SCL = 2;
 const uint8_t THERMAL_CAM_I2C_SDA = 4;
 const uint8_t THERMAL_CAM_I2C_SCL = 5;
 
-const uint8_t RADIO_TX = 41; //41
-const uint8_t RADIO_RX = 42; //42
+const uint8_t RADIO_TX = 5; //41
+const uint8_t RADIO_RX = 6; //42
 const uint8_t GPS_TX = 18;
 const uint8_t GPS_RX = 17;
 
@@ -30,6 +30,6 @@ const int BNO_RST = 39;
 const uint8_t CAM_RST = 38;
 const uint8_t RADIO_24GHZ_EN = 40;
 
-const uint8_t RADIO_433MHZ_M1 = 47; //47
-const uint8_t RADIO_433MHZ_M0 = 48; //48
-const uint8_t RADIO_AUX = 10; //10
+const uint8_t RADIO_433MHZ_M1 = 7; //47
+const uint8_t RADIO_433MHZ_M0 = 8; //48
+const uint8_t RADIO_AUX = 4; //10
