@@ -4,6 +4,7 @@
 #include <ThermalCam.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
+#include <config.h>
 
 extern CanSat canSat;
 extern SemaphoreHandle_t dataMutex;
@@ -74,8 +75,8 @@ public:
     PacketB packetB_2;
 
     Packet();
-    void WriteI2CSensorDataToBuffer(int currentSeq);
-    void WriteBNODataToBuffer(int currentSeq);
+    void WriteI2CSensorDataToBuffer(int currentSeq,bool debug = SENSOR_DEBUG);
+    void WriteBNODataToBuffer(int currentSeq, bool debug = SENSOR_DEBUG);
     
     void PreparePacketA_ForSending();
     void PreparePacketB_ForSending();

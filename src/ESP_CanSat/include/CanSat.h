@@ -23,6 +23,15 @@ public:
     CanSat();
     void begin();
     void RadioSetconfig();
+    void BMEBegin();
+    void BNOBegin();
+    void VEMLBegin();
+    void SGPBegin();
+    void GPSBegin();
+    void SDBegin();
+    void bus_init(int spi_speed, int i2c_speed, int serial_speed);
+    void I2CScan();
+
     void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
 
 

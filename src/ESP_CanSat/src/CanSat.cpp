@@ -25,19 +25,27 @@ CanSat::CanSat():
 };
 
 void CanSat::begin() {
-    SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
-    SPI.setFrequency(8000000);
-    Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);
-    Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);
-    Wire.setClock(400000);
-    Serial.begin(4000000);
+    bus_init(8000000, 400000, 4000000);
+    BMEBegin();
+    BNOBegin();
+    VEMLBegin();
+    SGPBegin();
+    GPSBegin();
+    SDBegin();
+    RadioSetconfig();
+}
 
+
+
+void CanSat::BMEBegin() {
     if (_bme.begin()) {
         Serial.println("BME280 sikeresen elindult!");
     } else {
         Serial.println("Hiba: BME280 nem található!");
     }
-    
+}
+
+void CanSat::BNOBegin() {
     if (_bno.begin(&SPI)) {
         Serial.println("Sikeres BNO szenzorinicializáció");
         _bno.enableSensors(); 
@@ -46,39 +54,43 @@ void CanSat::begin() {
     } else {
         Serial.println("Sikertelen BNO inicializáció");
     }
+}
 
+void CanSat::VEMLBegin() {
     if (_veml.begin(&Wire)) {
         Serial.println("Sikeres VEML szenzorinicializáció");
     } else {
         Serial.println("Sikertelen VEML inicializáció");
     }
+}
 
+void CanSat::SGPBegin() {
     if (_sgp.begin()) {
         Serial.println("Sikeres SGP30 szenzorinicializáció");
     } else {
         Serial.println("Sikertelen SGP30 inicializáció");
     }
+}
 
-    if (_gps.begin(9600)) {
+void CanSat::GPSBegin() {
+    if (_gps.begin(GPS_UART_SPEED)) {
         Serial.println("Sikeres GPS szenzorinicializáció");
     } else {
         Serial.println("Sikertelen GPS inicializáció");
     }
+}
 
+void CanSat::SDBegin() {
     if (!_sd.begin(SdSpiConfig(SD_CARD_CS, SHARED_SPI, SPI_FREQ, &SPI))) {
         Serial.println("sd init failled");
     } else {
         Serial.println("sd init sucess");
     }
-
     if (!_file.open("data.bin", O_RDWR | O_CREAT | O_TRUNC)) {
         Serial.println("file open failled");
     } else {
         Serial.println("sd init sucess");
     }
-    canSat.RadioSetconfig();
-
-
 }
 
 void CanSat::RadioSetconfig() {
@@ -139,4 +151,51 @@ void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *
     } else {
         Serial.println(rs.getResponseDescription());
     }
+}
+
+
+
+void CanSat::I2CScan() {
+    byte error, address;
+    int nDevices;
+    
+    Serial.println("Scanning...");
+    
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
+    {
+        Wire.beginTransmission(address);
+        error = Wire.endTransmission();
+    
+        if (error == 0)
+        {
+        Serial.print("I2C device found at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+    
+        nDevices++;
+        }
+        else if (error==4)
+        {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.println(address,HEX);
+        }    
+    }
+    if (nDevices == 0)
+        Serial.println("No I2C devices found\n");
+    else
+        Serial.println("done\n");
+}
+
+
+void CanSat::bus_init(int spi_speed, int i2c_speed, int serial_speed) {
+    SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
+    SPI.setFrequency(spi_speed);
+    Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);
+    Wire.setClock(i2c_speed);
+    Serial.begin(serial_speed);
 }
