@@ -3,7 +3,7 @@
 BME280::BME280() : bme() {}
 
 bool BME280::begin() {
-    return bme.begin(0x76, &Wire);
+    return bme.begin(0x77, &Wire);
 }
 
 float BME280::readTemperature() {

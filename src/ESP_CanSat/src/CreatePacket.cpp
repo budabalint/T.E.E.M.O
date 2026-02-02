@@ -39,25 +39,21 @@ PacketB* Packet::getPacketB_ReadPtr() {
 void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
-        // --- Változók az időméréshez ---
         unsigned long t_start;
         unsigned long dt_sgp, dt_bme, dt_gps, dt_veml;
 
-        // 1. SGP30 mérés
         t_start = micros();
         canSat._sgp.measure();
         uint16_t tvoc = canSat._sgp.GetTVOC();
         uint16_t co2 = canSat._sgp.GetCo2();
         dt_sgp = micros() - t_start;
 
-        // 2. BME280 mérés
         t_start = micros();
         float tempVal = canSat._bme.readTemperature();
         float humVal = canSat._bme.readHumidity();
         float pressVal = canSat._bme.readPressure();
         dt_bme = micros() - t_start;
 
-        // 3. GPS mérés
         t_start = micros();
         canSat._gps.encode(); 
         double latVal = canSat._gps.getLat();
@@ -68,14 +64,11 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
         uint8_t satsVal = canSat._gps.getSatellites();
         dt_gps = micros() - t_start;
 
-        // 4. VEML mérés
         t_start = micros();
         float whiteVal = canSat._veml.readWhite();
         float luxVal = canSat._veml.readLux();
         dt_veml = micros() - t_start;
 
-        // --- Adatok írása a csomagba (PacketA & PacketB) ---
-        // (Itt már a lementett változókat használjuk, nem mérünk újra)
         PacketA_WritePtr->TVOC_index = tvoc;
         PacketA_WritePtr->CO2_index = co2;
 
@@ -102,7 +95,6 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
         PacketB_WritePtr->white = whiteVal;
         PacketB_WritePtr->lux = (uint32_t)luxVal;
 
-        // --- DEBUG KIÍRATÁS ---
         if (debug) {
             Serial.println("\n----------------- I2C SENSOR DATA -----------------");
             Serial.println("SENSOR  | TIME (us) | DATA");
@@ -141,7 +133,7 @@ void Packet::WriteBNODataToBuffer(int currentSeq, bool debug) {
         PacketA_WritePtr->roll = (int16_t)(roll * 100.0f);
         PacketA_WritePtr->pitch = (int16_t)(pitch * 100.0f);
         PacketA_WritePtr->yaw = (int16_t)(yaw * 100.0f);
-        digitalWrite(BNO_CS, HIGH); // Az eredeti kódod alapján
+        digitalWrite(BNO_CS, HIGH);
         dt_orient = micros() - t_start;
         
         t_start = micros();

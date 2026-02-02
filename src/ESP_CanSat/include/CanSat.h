@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include <BME280.h>
 #include <VEML7700.h>
-#include <SGP30.h>
+#include <SGP41.h>
 #include <GPS.h>
 #include <SdFat.h>
 #include <LoRa_E220.h>
@@ -15,7 +15,7 @@ public:
     BNO085 _bno;
     BME280 _bme;
     VEML7700 _veml;
-    SGP30 _sgp;
+    SGP41 _sgp;
     GPS _gps;
     SdFat _sd;
     SdFile _file;

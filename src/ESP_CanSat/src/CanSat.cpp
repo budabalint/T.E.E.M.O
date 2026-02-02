@@ -4,7 +4,7 @@
 #include <hardware_pins.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <SGP30.h>
+#include <SGP41.h>
 #include <Create_Packet.h>
 #include <config.h>
 
@@ -86,7 +86,7 @@ void CanSat::SDBegin() {
     } else {
         Serial.println("sd init sucess");
     }
-    if (!_file.open("data.bin", O_RDWR | O_CREAT | O_TRUNC)) {
+    if (!_file.open("data.bin", O_RDWR | O_CREAT | O_APPEND)) {
         Serial.println("file open failled");
     } else {
         Serial.println("sd init sucess");
