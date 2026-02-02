@@ -9,6 +9,7 @@
 #include <GPS.h>
 #include <SdFat.h>
 #include <LoRa_E220.h>
+#include <Ina_Sensor.h>
 
 class CanSat {
 public:
@@ -20,6 +21,10 @@ public:
     SdFat _sd;
     SdFile _file;
     LoRa_E220 _433radio;
+    INA_Sensor _ina3v3;
+    INA_Sensor _ina12v;
+
+
     CanSat();
     void begin();
     void RadioSetconfig();
@@ -29,6 +34,7 @@ public:
     void SGPBegin();
     void GPSBegin();
     void SDBegin();
+    void InaBegin();
     void bus_init(int spi_speed, int i2c_speed, int serial_speed);
     void I2CScan();
 

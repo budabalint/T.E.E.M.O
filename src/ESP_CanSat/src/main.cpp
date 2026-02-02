@@ -115,7 +115,19 @@ void ReadI2CSensors(void *pvParameters) {
     int seq = 0;
     while(1) {
         packet.WriteI2CSensorDataToBuffer(1);
-        canSat.I2CScan();
+        //canSat.I2CScan();
+        Serial.print("Feszultseg: ");
+        Serial.print(canSat._ina3v3.GetVoltage());
+        Serial.println(" V");
+    
+        Serial.print("Aram: ");
+        Serial.print(canSat._ina3v3.GetCurrent());
+        Serial.print(canSat._ina3v3.GetPower());
+        Serial.print(canSat._ina3v3.GetShuntVoltage());
+        Serial.print(canSat._ina12v.GetCurrent());
+        Serial.print(canSat._ina12v.GetPower());
+        Serial.print(canSat._ina12v.GetShuntVoltage());
+        Serial.println(" mA");
         delay(200);
         seq++;
         vTaskDelay(pdMS_TO_TICKS(50));

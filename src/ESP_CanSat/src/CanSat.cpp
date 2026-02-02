@@ -19,23 +19,39 @@ CanSat::CanSat():
     _gps(),
     _sd(),
     _file(),
-    _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600)
+    _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
+    _ina3v3(0x4A),
+    _ina12v(0x4F)
 {
     
 };
 
 void CanSat::begin() {
-    bus_init(8000000, 400000, 4000000);
+    bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
     BMEBegin();
     BNOBegin();
     VEMLBegin();
     SGPBegin();
     GPSBegin();
     SDBegin();
+    InaBegin();
     RadioSetconfig();
 }
 
+void CanSat::InaBegin() {
+    _ina3v3.begin();
+    if (_ina12v.begin()) {
+        Serial.println("INA_12V sikeresen elindult!");
+    } else {
+        Serial.println("Hiba: INA_12V nem található!");
+    }
 
+    if (_ina3v3.begin()) {
+        Serial.println("INA_3V3 sikeresen elindult!");
+    } else {
+        Serial.println("Hiba: INA_3V3 nem található!");
+    }
+}
 
 void CanSat::BMEBegin() {
     if (_bme.begin()) {
