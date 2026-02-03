@@ -116,17 +116,13 @@ void ReadI2CSensors(void *pvParameters) {
     while(1) {
         packet.WriteI2CSensorDataToBuffer(1);
         //canSat.I2CScan();
+        canSat._ina3v3.measure();
         Serial.print("Feszultseg: ");
         Serial.print(canSat._ina3v3.GetVoltage());
         Serial.println(" V");
-    
+        canSat._ina3v3.measure();
         Serial.print("Aram: ");
         Serial.print(canSat._ina3v3.GetCurrent());
-        Serial.print(canSat._ina3v3.GetPower());
-        Serial.print(canSat._ina3v3.GetShuntVoltage());
-        Serial.print(canSat._ina12v.GetCurrent());
-        Serial.print(canSat._ina12v.GetPower());
-        Serial.print(canSat._ina12v.GetShuntVoltage());
         Serial.println(" mA");
         delay(200);
         seq++;
@@ -144,7 +140,7 @@ void setup() {
   canSat.bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
 
   //xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
-  //xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
   //xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    8192, NULL, 2, NULL, 0);
   xTaskCreatePinnedToCore(TaskDebug,        "DebugSender",    8192, NULL, 2, NULL, 0);

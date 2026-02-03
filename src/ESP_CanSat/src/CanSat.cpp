@@ -20,14 +20,15 @@ CanSat::CanSat():
     _sd(),
     _file(),
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
-    _ina3v3(0x4A),
-    _ina12v(0x4F)
+    _ina3v3(0x4F),
+    _ina12v(0x4A)
 {
     
 };
 
 void CanSat::begin() {
     bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
+    delay(2000);
     BMEBegin();
     BNOBegin();
     VEMLBegin();

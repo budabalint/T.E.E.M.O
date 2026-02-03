@@ -15,4 +15,4 @@ const int I2C_SPEED = 400000; // 4Khz max
 const int UART_SPEED = 115200;
 
 
-const int GPS_UART_SPEED = 9600;
+const int GPS_UART_SPEED = 115200;

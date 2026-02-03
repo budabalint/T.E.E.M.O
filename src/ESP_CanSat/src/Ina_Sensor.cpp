@@ -15,7 +15,7 @@ bool INA_Sensor::begin() {
         return false;
     }
 
-    _ina.setMaxCurrentShunt(1, 0.082);
+    _ina.setMaxCurrentShunt(0.5, 0.082);
 
     return true;
 }
