@@ -23,8 +23,8 @@ bool INA_Sensor::begin() {
 bool INA_Sensor::measure() {
     if (_ina.isConversionReady()) {
         _busVoltage = _ina.getBusVoltage(); // V
-        _current = _ina.getCurrent();       // mA
-        _power = _ina.getPower();           // mW
+        _current = _ina.getCurrent();       // A
+        _power = _ina.getPower();           // W
         _shuntVoltage = _ina.getShuntVoltage(); // mV
         
         return true;
@@ -38,7 +38,7 @@ float INA_Sensor::GetVoltage() {
 }
 
 float INA_Sensor::GetCurrent() {
-    return _current;
+    return _current*1000;
 }
 
 float INA_Sensor::GetPower() {

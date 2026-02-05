@@ -65,7 +65,7 @@ void TaskDebug(void *pvParameters) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, 1);
         
-        //Serial.write((uint8_t*)&tPacket, sizeof(ThermalPacket));
+        Serial.write((uint8_t*)&tPacket, sizeof(ThermalPacket));
         //printHex(&tPacket, sizeof(ThermalPacket));
         
         vTaskDelay(pdMS_TO_TICKS(12)); 
@@ -73,14 +73,14 @@ void TaskDebug(void *pvParameters) {
       packet.PreparePacketA_ForSending();
       uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr(); 
       
-      //Serial.write(dataA, sizeof(PacketA));
+      Serial.write(dataA, sizeof(PacketA));
       //printHex(dataA, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
       packet.PreparePacketB_ForSending();
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
 
       
-      //Serial.write(dataB, sizeof(PacketB));
+      Serial.write(dataB, sizeof(PacketB));
       //printHex(dataB, 44);
       
       vTaskDelay(pdMS_TO_TICKS(12));
@@ -116,14 +116,6 @@ void ReadI2CSensors(void *pvParameters) {
     while(1) {
         packet.WriteI2CSensorDataToBuffer(1);
         //canSat.I2CScan();
-        canSat._ina3v3.measure();
-        Serial.print("Feszultseg: ");
-        Serial.print(canSat._ina3v3.GetVoltage());
-        Serial.println(" V");
-        canSat._ina3v3.measure();
-        Serial.print("Aram: ");
-        Serial.print(canSat._ina3v3.GetCurrent());
-        Serial.println(" mA");
         delay(200);
         seq++;
         vTaskDelay(pdMS_TO_TICKS(50));

@@ -40,7 +40,7 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
         unsigned long t_start;
-        unsigned long dt_sgp, dt_bme, dt_gps, dt_veml;
+        unsigned long dt_sgp, dt_bme, dt_gps, dt_veml, dt_ina;
 
         t_start = micros();
         canSat._sgp.measure();
@@ -69,13 +69,27 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
         float luxVal = canSat._veml.readLux();
         dt_veml = micros() - t_start;
 
+        t_start = micros();
+        
+        canSat._ina3v3.measure();
+        float vol3v3 = canSat._ina3v3.GetVoltage();
+        float cur3v3 = canSat._ina3v3.GetCurrent();
+        
+        canSat._ina12v.measure();
+        float vol12v = canSat._ina12v.GetVoltage();
+        float cur12v = canSat._ina12v.GetCurrent();
+        
+        dt_ina = micros() - t_start;
+
+
         PacketA_WritePtr->TVOC_index = tvoc;
         PacketA_WritePtr->CO2_index = co2;
 
-        PacketA_WritePtr->current1 = 0;
-        PacketA_WritePtr->current2 = 0;
-        PacketA_WritePtr->voltage1 = 0;
-        PacketA_WritePtr->voltage2 = 0;
+        PacketA_WritePtr->voltage1 = (uint16_t)(vol3v3 * 1000);
+        PacketA_WritePtr->current1 = (uint32_t)(cur3v3 * 1000);
+        
+        PacketA_WritePtr->voltage2 = (uint16_t)(vol12v * 1000);
+        PacketA_WritePtr->current2 = (uint32_t)(cur12v * 1000);
 
         PacketB_WritePtr->startByte = 0xFE;
         PacketB_WritePtr->id = 0xBB;
@@ -100,10 +114,12 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
             Serial.println("SENSOR  | TIME (us) | DATA");
             Serial.println("---------------------------------------------------");
             
-            Serial.printf("SGP30   | %9lu | TVOC: %d ppb, CO2: %d ppm\n", dt_sgp, tvoc, co2);
+            Serial.printf("SGP41   | %9lu | TVOC: %d ppb, CO2: %d ppm\n", dt_sgp, tvoc, co2);
             Serial.printf("BME280  | %9lu | T: %.2f C, H: %.2f %%, P: %.2f hPa\n", dt_bme, tempVal, humVal, pressVal);
             Serial.printf("GPS     | %9lu | Sats: %d, Alt: %.1f m, Pos: %.6f, %.6f\n", dt_gps, satsVal, altVal, latVal, lngVal);
             Serial.printf("VEML    | %9lu | Lux: %.1f, White: %.1f\n", dt_veml, luxVal, whiteVal);
+            Serial.printf("PWR 3V3 | %9lu | U: %.6f V, I: %.6f mA\n", dt_ina, vol3v3, cur3v3);
+            Serial.printf("PWR 12V |           | U: %.6f V, I: %.6f mA\n", vol12v, cur12v);
             
             Serial.println("---------------------------------------------------\n");
         }

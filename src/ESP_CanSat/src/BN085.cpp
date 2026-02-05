@@ -50,7 +50,7 @@ void BNO085::update() {
     if (bno.wasReset()) {
         enableSensors();
     }
-    int biztonsagi_limit = 1;
+    int biztonsagi_limit = 3;
 
     while (bno.getSensorEvent(&_sensorValue) && biztonsagi_limit > 0) {
     
