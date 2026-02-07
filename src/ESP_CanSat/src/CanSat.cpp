@@ -135,15 +135,15 @@ void CanSat::RadioSetconfig() {
         configuration.ADDL = SRC_ADDL;
         configuration.CHAN = CHANNEL;
 
-        configuration.SPED.airDataRate = AIR_DATA_RATE_000_24;
-        configuration.SPED.uartBaudRate = UART_BPS_9600;
+        configuration.SPED.airDataRate = AIR_DATA_RATE_111_625;
+        configuration.SPED.uartBaudRate = UART_BPS_115200;
         configuration.SPED.uartParity = MODE_00_8N1;
 
         configuration.OPTION.transmissionPower = POWER_10;
         configuration.OPTION.subPacketSetting = SPS_200_00;
         configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
 
-        configuration.TRANSMISSION_MODE.enableRSSI = RSSI_DISABLED;
+        configuration.TRANSMISSION_MODE.enableRSSI = RSSI_ENABLED;
         configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION;
         configuration.TRANSMISSION_MODE.enableLBT = LBT_DISABLED;
         configuration.TRANSMISSION_MODE.WORPeriod = WOR_2000_011;
@@ -156,6 +156,7 @@ void CanSat::RadioSetconfig() {
     c.close();
 
     _433radio.setMode(MODE_0_NORMAL);
+    Serial2.begin(115200);
 }
 
 
