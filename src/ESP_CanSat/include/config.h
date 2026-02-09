@@ -7,8 +7,10 @@ const uint8_t DEST_ADDH = 0;
 const uint8_t DEST_ADDL = 2;
 const uint8_t CHANNEL = 23; //410,125 + CHANNEL
 
-const bool SENSOR_DEBUG = false;
+const bool SENSOR_DEBUG = true;
 
+const byte address[6] = "00001";
+const uint8_t CHANNEL_24 = 85; // 2400Mhz + CHANNEL_24
 
 const int SPI_SPEED = 8000000; //8Mhz max
 const int I2C_SPEED = 400000; // 4Khz max

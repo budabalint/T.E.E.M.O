@@ -10,6 +10,7 @@
 #include <SdFat.h>
 #include <LoRa_E220.h>
 #include <Ina_Sensor.h>
+#include <RF24.h>
 
 class CanSat {
 public:
@@ -23,11 +24,13 @@ public:
     LoRa_E220 _433radio;
     INA_Sensor _ina3v3;
     INA_Sensor _ina12v;
+    RF24 _24radio;
 
 
     CanSat();
     void begin();
-    void RadioSetconfig();
+    void LoraRadioSetconfig();
+    void RF24RadioSetconfig();
     void BMEBegin();
     void BNOBegin();
     void VEMLBegin();

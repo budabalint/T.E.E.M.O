@@ -1,14 +1,12 @@
-#include <Arduino.h>
-#include <RF24.h>
 #include <SPI.h>
+#include <RF24.h>
+#include <nRF24L01.h>
 
-#define CS_PIN 5
-#define CE_PIN 4
-#define MOSI 7
-#define MISO 8
-#define CLK 6
-#define IRQ 9
-
+#define CE_PIN   4
+#define CS_PIN   5
+#define MOSI_PIN 7
+#define MISO_PIN 8
+#define CLK_PIN  6
 
 RF24 radio(CE_PIN, CS_PIN);
 
@@ -16,33 +14,31 @@ const byte address[6] = "00001";
 
 void setup() {
   Serial.begin(921600);
-  SPI.begin(CLK,MISO,MOSI,CS_PIN);
+  while (!Serial) {
+  }
+  SPI.begin(CLK_PIN, MISO_PIN, MOSI_PIN);
+
   if (!radio.begin()) {
-    Serial.println("unsucsessful radio init");
+    Serial.println("init error");
     while (1) {}
   }
-  radio.setDataRate(RF24_1MBPS);
-  radio.setPALevel(RF24_PA_MIN); 
-  radio.setChannel(30); 
-  radio.openWritingPipe(address);
-  radio.setPayloadSize(32);
-  radio.stopListening();
-  radio.setAutoAck(false);
-  
-  Serial.println("Init finished");
-  radio.printDetails();
 
+  radio.setDataRate(RF24_1MBPS);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.setChannel(85);
+  radio.setPayloadSize(32);
+  radio.setAutoAck(false);
+  radio.openReadingPipe(1, address);
+  radio.startListening();
+  
+  Serial.println("Vevő kész. Várakozás az adatokra...");
+  radio.printDetails();
 }
 
 void loop() {
-  char text[32] = "Ez egy 32 bájtos tesztcsomag.";
-  bool success = radio.write(&text, sizeof(text));
-
-  if (success) {
-    Serial.println("Sucess");
-  } else {
-    Serial.println("error");
+  if (radio.available()) {
+    char text[32] = {0};
+    radio.read(&text, sizeof(text));
+    Serial.println(text);
   }
-  
-  delay(1000);
 }

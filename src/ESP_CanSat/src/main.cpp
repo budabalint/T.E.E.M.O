@@ -27,7 +27,7 @@ void printHex(void* ptr, size_t size) {
 void TaskRadioSender(void *pvParameters) {
   int sequenceCounter = 0;
   while (1) {
-    cam.swapBuffersIfNew();
+    //cam.swapBuffersIfNew();
     /*    for (int chunk = 0; chunk < 3; chunk++) {
       for (int i = 0; i < 8; i++) {
         int currentRow = (chunk * 8) + i;
@@ -98,9 +98,11 @@ void ReadThermalCam(void *pvParameters) {
 
 void SPICommunication(void *pvParameters) {
     int seq = 0;
+    char text[32] = "Ez egy 32 bájtos tesztcsomag.";
     while (1)
     {
         packet.WriteBNODataToBuffer(1);
+        //canSat._24radio.write(&text, sizeof(text));;
         delay(200);
         seq++;
         vTaskDelay(pdMS_TO_TICKS(10)); 
@@ -125,7 +127,6 @@ void setup() {
   delay(100);
   cam.begin(1000000);
   delay(100);
-  canSat.bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
 
   xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);

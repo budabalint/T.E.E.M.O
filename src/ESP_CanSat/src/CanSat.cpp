@@ -21,7 +21,8 @@ CanSat::CanSat():
     _file(),
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
     _ina3v3(0x4F),
-    _ina12v(0x4A)
+    _ina12v(0x4A),
+    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS)
 {
     
 };
@@ -36,7 +37,8 @@ void CanSat::begin() {
     GPSBegin();
     SDBegin();
     InaBegin();
-    RadioSetconfig();
+    LoraRadioSetconfig();
+    //RF24RadioSetconfig();
 }
 
 void CanSat::InaBegin() {
@@ -110,7 +112,7 @@ void CanSat::SDBegin() {
     }
 }
 
-void CanSat::RadioSetconfig() {
+void CanSat::LoraRadioSetconfig() {
     delay(1000);
 
     pinMode(RADIO_433MHZ_M1, OUTPUT);
@@ -157,6 +159,23 @@ void CanSat::RadioSetconfig() {
 
     _433radio.setMode(MODE_0_NORMAL);
     Serial2.begin(115200);
+}
+
+void CanSat::RF24RadioSetconfig() {
+    if (!_24radio.begin()) {
+        Serial.println("unsucsessful radio init");
+    }
+    _24radio.setDataRate(RF24_1MBPS);
+    _24radio.setPALevel(RF24_PA_MIN); 
+    _24radio.setChannel(CHANNEL_24); 
+    _24radio.openWritingPipe(address);
+    _24radio.setPayloadSize(32);
+    _24radio.stopListening();
+    _24radio.setAutoAck(false);
+    
+    Serial.println("Init finished");
+    _24radio.printDetails();
+    //_24radio.write(&text, sizeof(text));
 }
 
 
@@ -211,6 +230,8 @@ void CanSat::I2CScan() {
 
 
 void CanSat::bus_init(int spi_speed, int i2c_speed, int serial_speed) {
+    //pinMode(SENSOR_I2C_SDA, INPUT_PULLUP);
+    //pinMode(SENSOR_I2C_SCL, INPUT_PULLUP);
     SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
     SPI.setFrequency(spi_speed);
     Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);
