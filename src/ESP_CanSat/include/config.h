@@ -18,3 +18,13 @@ const int UART_SPEED = 921600;
 
 
 const int GPS_UART_SPEED = 115200;
+
+//main cam
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress camIP(192, 168, 0, 144);
+const int camPort = 554;
+const char* streamURL = "rtsp://192.168.0.144/stream=1";
+const char* authHeader = "Authorization: Basic cm9vdDphYWFh"; //pass:aaaa
+
+#define BUFFER_SIZE 32768
+uint8_t* packetBuffer; 
