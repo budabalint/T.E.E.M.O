@@ -7,7 +7,7 @@ const uint8_t DEST_ADDH = 0;
 const uint8_t DEST_ADDL = 2;
 const uint8_t CHANNEL = 23; //410,125 + CHANNEL
 
-const bool SENSOR_DEBUG = true;
+const bool SENSOR_DEBUG = false;
 
 const byte address[6] = "00001";
 const uint8_t CHANNEL_24 = 85; // 2400Mhz + CHANNEL_24

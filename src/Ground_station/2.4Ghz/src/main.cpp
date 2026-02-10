@@ -40,5 +40,6 @@ void loop() {
     char text[32] = {0};
     radio.read(&text, sizeof(text));
     Serial.println(text);
+    Serial.println(radio.testRPD());
   }
 }

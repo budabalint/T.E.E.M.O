@@ -22,7 +22,7 @@ CanSat::CanSat():
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
     _ina3v3(0x4F),
     _ina12v(0x4A),
-    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS)
+    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS, 8000000)
 {
     
 };
@@ -38,7 +38,7 @@ void CanSat::begin() {
     SDBegin();
     InaBegin();
     LoraRadioSetconfig();
-    //RF24RadioSetconfig();
+    RF24RadioSetconfig();
 }
 
 void CanSat::InaBegin() {
@@ -166,7 +166,7 @@ void CanSat::RF24RadioSetconfig() {
         Serial.println("unsucsessful radio init");
     }
     _24radio.setDataRate(RF24_1MBPS);
-    _24radio.setPALevel(RF24_PA_MIN); 
+    _24radio.setPALevel(RF24_PA_LOW); 
     _24radio.setChannel(CHANNEL_24); 
     _24radio.openWritingPipe(address);
     _24radio.setPayloadSize(32);
