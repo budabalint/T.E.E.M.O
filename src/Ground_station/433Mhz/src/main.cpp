@@ -5,22 +5,18 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-
 const uint8_t RX_PIN = 5;
 const uint8_t TX_PIN = 6;
 const uint8_t AUX_PIN = 4;
 const uint8_t M1_PIN = 7;
 const uint8_t M0_PIN = 8;
 
-
-
 const uint8_t MY_ADDH = 0;
 const uint8_t MY_ADDL = 2;
-const uint8_t CHANNEL = 23; // Ugyanaz a csatorna (433.125 + 23)
+const uint8_t CHANNEL = 23;
 
 const uint8_t SDA_PIN = 21;
 const uint8_t SCL_PIN = 47;
-
 
 #define LED_COUNT   8
 #define LED_PIN     48
@@ -31,7 +27,26 @@ const uint8_t SCL_PIN = 47;
 #define OLED_RESET     -1
 #define SCREEN_ADDRESS 0x3C
 
+// --- Statisztikai változók ---
+unsigned long totalPackets = 0;
+unsigned long crcErrors = 0;
 
+// CRC-8 kalkulátor függvény
+uint8_t calculateCRC8(const uint8_t *data, size_t len) {
+  uint8_t crc = 0x00;
+  while (len--) {
+    uint8_t extract = *data++;
+    for (uint8_t tempI = 8; tempI; tempI--) {
+      uint8_t sum = (crc ^ extract) & 0x01;
+      crc >>= 1;
+      if (sum) {
+        crc ^= 0x8C;
+      }
+      extract >>= 1;
+    }
+  }
+  return crc;
+}
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 LoRa_E220 e220ttl(RX_PIN, TX_PIN, &Serial2, AUX_PIN, M0_PIN, M1_PIN, UART_BPS_RATE_9600);
@@ -57,15 +72,19 @@ void setup() {
   }
 
   display.clearDisplay();
-  display.setTextSize(4);
+  display.setTextSize(2); 
   display.setTextColor(SSD1306_WHITE);
-
+  display.setCursor(0,20);
+  display.print("Indulas...");
+  display.display();
 
   delay(200);
   strip.begin();
   delay(500);
+  strip.setPixelColor(6, 0,255,255);
   strip.show();
   delay(500);
+  
   while(Serial2.available()) {
     Serial2.read();
   }
@@ -73,34 +92,32 @@ void setup() {
   e220ttl.begin();
 
   ResponseStructContainer c = e220ttl.getConfiguration();
-  
+
   if (c.status.code == E220_SUCCESS) {
-      Configuration configuration = *(Configuration*) c.data;
+    Configuration configuration = *(Configuration*) c.data;
 
-      configuration.ADDH = MY_ADDH;
-      configuration.ADDL = MY_ADDL;
-      configuration.CHAN = CHANNEL;
+    configuration.ADDH = MY_ADDH;
+    configuration.ADDL = MY_ADDL;
+    configuration.CHAN = CHANNEL;
 
+    configuration.SPED.airDataRate = AIR_DATA_RATE_111_625;
+    configuration.SPED.uartBaudRate = UART_BPS_115200;
+    configuration.SPED.uartParity = MODE_00_8N1;
+    
+    configuration.OPTION.transmissionPower = POWER_10; 
+    configuration.OPTION.subPacketSetting = SPS_200_00;
+    configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
+    configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION;
+    configuration.TRANSMISSION_MODE.enableRSSI = RSSI_ENABLED;
 
-      configuration.SPED.airDataRate = AIR_DATA_RATE_111_625;
-      configuration.SPED.uartBaudRate = UART_BPS_115200;
-      configuration.SPED.uartParity = MODE_00_8N1;
-      
+    ResponseStatus rs = e220ttl.setConfiguration(configuration, WRITE_CFG_PWR_DWN_SAVE);
+    Serial.println(rs.getResponseDescription());
+    Serial.println("Konfiguráció sikeresen beállítva!");
+    Serial.printf("Cím: %d.%d, Csatorna: %d\n", MY_ADDH, MY_ADDL, CHANNEL);
 
-      configuration.OPTION.transmissionPower = POWER_10; 
-      configuration.OPTION.subPacketSetting = SPS_200_00;
-      configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
-      configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION; // Fix mód
-      configuration.TRANSMISSION_MODE.enableRSSI = RSSI_ENABLED;
-
-      ResponseStatus rs = e220ttl.setConfiguration(configuration, WRITE_CFG_PWR_DWN_SAVE);
-      Serial.println(rs.getResponseDescription());
-      Serial.println("Konfiguráció sikeresen beállítva!");
-      Serial.printf("Cím: %d.%d, Csatorna: %d\n", MY_ADDH, MY_ADDL, CHANNEL);
-      
   } else {
-      Serial.println("Hiba a konfiguráció olvasásakor! Ellenőrizd a bekötést!");
-      Serial.println(c.status.getResponseDescription());
+    Serial.println("Hiba a konfiguráció olvasásakor! Ellenőrizd a bekötést!");
+    Serial.println(c.status.getResponseDescription());
   }
   c.close();
   e220ttl.setMode(MODE_0_NORMAL);
@@ -109,74 +126,116 @@ void setup() {
   Serial.println("Vételre kész...");
 }
 
-
-// Feltételezve, hogy az Adafruit_NeoPixel könyvtárat használod
-// és a 'strip', 'display', 'e220ttl' objektumok inicializálva vannak.
-
-int count = 0;
 unsigned long lastSignalTime = 0;
-const unsigned long signalTimeout = 1000; // 1 másodperc timeout
-
-// Jelerősség határértékek (A te hardvered/beállításod alapján)
-// E220 esetén gyakran az alacsonyabb nyers érték a jobb jel
-const int RSSI_STRONG = 40;  // Erős jel (Raw érték)
-const int RSSI_WEAK = 120;   // Gyenge jel határa (Raw érték)
+const unsigned long signalTimeout = 1000;
 
 void loop() {
+  static int lastNumLeds = -1;
+  static uint32_t lastColor = 0;
+  static bool hasSignal = false;
+  static int displayUpdateCount = 0;
+
   if (e220ttl.available() >= 45) {
     lastSignalTime = millis();
     ResponseStructContainer rc = e220ttl.receiveMessageRSSI(44);
 
     if (rc.status.code == E220_SUCCESS) {
-      int rssi = rc.rssi;
-      int calcRssi = rssi;
+      totalPackets++;
+
+      // 1. lépés: A nyers memóriát bájttömbként kezeljük
+      uint8_t *buffer = (uint8_t*) rc.data; 
       
-      int strongSignal = 40; 
-      int weakSignal = 120;
-
-      if (calcRssi < strongSignal) calcRssi = strongSignal;
-      if (calcRssi > weakSignal) calcRssi = weakSignal;
-
-      int numLedsOn = map(calcRssi, weakSignal, strongSignal, 0, LED_COUNT);
-
-      uint32_t color;
-      if (numLedsOn <= 2) {
-        color = strip.Color(255, 0, 0);
-      } else if (numLedsOn <= 5) {
-        color = strip.Color(255, 140, 0);
-      } else {
-        color = strip.Color(0, 255, 0);
-      }
+      // 2. lépés: Kivesszük a 44. bájtot (index 43), ami a CRC
+      // JAVÍTVA: Itt hiányzott a [43] az előző verzióból!
+      uint8_t receivedCRC = buffer[43]; 
       
-      strip.clear();
-      for (int i = 0; i < numLedsOn; i++) {
-        strip.setPixelColor(i, color);
-      }
-      strip.show();
+      // 3. lépés: Kiszámoljuk a CRC-t az első 43 bájtra (0-tól 42-ig)
+      uint8_t calculatedCRC = calculateCRC8(buffer, 43);
 
-      if (count >= 5) {
-        display.clearDisplay();
-        display.setCursor(0, 10);
-        display.print(rssi - 255);
-        display.display();
-        count = 0;
+      if(receivedCRC != calculatedCRC) {
+        crcErrors++; // Ha nem egyezik, hibás a csomag
       }
-      count++;
 
+      // --- RSSI és LED logika ---
+      int rssi_dbm = rc.rssi - 255; 
+      if (rssi_dbm >= -130) { 
+        
+        int numLedsOn = 1;
+        uint32_t color = 0;
+
+        int calc_rssi = constrain(rssi_dbm, -91, 0);
+        if (calc_rssi <= -62) {
+          color = strip.Color(255, 0, 0);
+          numLedsOn = map(calc_rssi, -91, -62, 1, 8);
+        } 
+        else if (calc_rssi <= -32) {
+          color = strip.Color(255, 255, 0);
+          numLedsOn = map(calc_rssi, -61, -32, 1, 8);
+        } 
+        else {
+          color = strip.Color(0, 255, 0);
+          numLedsOn = map(calc_rssi, -31, 0, 1, 8);
+        }
+        numLedsOn = constrain(numLedsOn, 1, 8);
+
+        if (numLedsOn != lastNumLeds || color != lastColor || !hasSignal) {
+          strip.clear();
+          for (int i = 0; i < numLedsOn; i++) {
+            strip.setPixelColor(i, color);
+          }
+          strip.show();
+          
+          lastNumLeds = numLedsOn; 
+          lastColor = color;
+          hasSignal = true;        
+        }
+
+        // --- OLED Kijelző frissítése ---
+        if (displayUpdateCount >= 5) {
+          display.clearDisplay();
+          
+          display.setTextSize(2);
+          display.setCursor(0, 0);
+          display.print("RSSI:");
+          display.print(rssi_dbm);
+
+          display.setTextSize(1);
+          display.setCursor(0, 30);
+          display.print("Csomagok : ");
+          display.print(totalPackets);
+
+          display.setCursor(0, 45);
+          display.print("CRC Hiba : ");
+          display.print(crcErrors);
+
+          display.display();
+          displayUpdateCount = 0;
+        }
+        displayUpdateCount++;
+      }
     }
     rc.close();
-  } else {
-    if (millis() - lastSignalTime >= signalTimeout) {
-      display.clearDisplay();
-      display.setCursor(0, 10);
-      display.print("No Signal!");
-      display.display();
 
-      strip.clear();
-      for (int i = 0; i < LED_COUNT; i++) {
-        strip.setPixelColor(i, 255, 0, 0);
+  } else {
+    // --- Jel megszakadás detektálása ---
+    if (millis() - lastSignalTime >= signalTimeout) {
+      if (hasSignal) {
+        display.clearDisplay();
+        display.setTextSize(2); 
+        display.setCursor(0, 20);
+        display.print("No Signal!");
+        display.display();
+
+        strip.clear();
+        for (int i = 0; i < LED_COUNT; i++) {
+          strip.setPixelColor(i, 255, 0, 0);
+        }
+        strip.show();
+
+        hasSignal = false; 
+        lastNumLeds = -1;  
+        lastColor = 0;
       }
-      strip.show();
     }
   }
 }
