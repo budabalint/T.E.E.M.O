@@ -1,24 +1,46 @@
 #include <Arduino.h>
 #include <LoRa_E220.h>
+#include <Adafruit_NeoPixel.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 
-const uint8_t RX_PIN = 6;
-const uint8_t TX_PIN = 5;
+const uint8_t RX_PIN = 5;
+const uint8_t TX_PIN = 6;
 const uint8_t AUX_PIN = 4;
 const uint8_t M1_PIN = 7;
 const uint8_t M0_PIN = 8;
+
 
 
 const uint8_t MY_ADDH = 0;
 const uint8_t MY_ADDL = 2;
 const uint8_t CHANNEL = 23; // Ugyanaz a csatorna (433.125 + 23)
 
+const uint8_t SDA_PIN = 21;
+const uint8_t SCL_PIN = 47;
 
+
+#define LED_COUNT   8
+#define LED_PIN     48
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define OLED_RESET     -1
+#define SCREEN_ADDRESS 0x3C
+
+
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 LoRa_E220 e220ttl(RX_PIN, TX_PIN, &Serial2, AUX_PIN, M0_PIN, M1_PIN, UART_BPS_RATE_9600);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
   Serial.begin(921600);
   delay(1000);
+  Wire.begin(SDA_PIN, SCL_PIN);
 
   pinMode(M0_PIN, OUTPUT);
   pinMode(M1_PIN, OUTPUT);
@@ -28,8 +50,22 @@ void setup() {
   delay(1000);
 
   e220ttl.begin();
-  delay(200);
 
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println("OLED init hiba");
+    while(true);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(4);
+  display.setTextColor(SSD1306_WHITE);
+
+
+  delay(200);
+  strip.begin();
+  delay(500);
+  strip.show();
+  delay(500);
   while(Serial2.available()) {
     Serial2.read();
   }
@@ -74,23 +110,73 @@ void setup() {
 }
 
 
+// Feltételezve, hogy az Adafruit_NeoPixel könyvtárat használod
+// és a 'strip', 'display', 'e220ttl' objektumok inicializálva vannak.
+
+int count = 0;
+unsigned long lastSignalTime = 0;
+const unsigned long signalTimeout = 1000; // 1 másodperc timeout
+
+// Jelerősség határértékek (A te hardvered/beállításod alapján)
+// E220 esetén gyakran az alacsonyabb nyers érték a jobb jel
+const int RSSI_STRONG = 40;  // Erős jel (Raw érték)
+const int RSSI_WEAK = 120;   // Gyenge jel határa (Raw érték)
 
 void loop() {
-  // Megvárjuk, amíg összegyűlik 45 bájt (44 adat + 1 RSSI)
-  // Így nem blokkolja a loop-ot, ha nincs adat.
   if (e220ttl.available() >= 45) {
-    
-    // Kiolvas 44 bájtot a 'data'-ba, és a 45.-et az 'rssi'-be
+    lastSignalTime = millis();
     ResponseStructContainer rc = e220ttl.receiveMessageRSSI(44);
 
     if (rc.status.code == E220_SUCCESS) {
-      // Csak a tiszta adatot küldjük tovább a PC-nek (44 byte)
-      // Az RSSI bájt itt az 'rc.rssi'-ben van, de mivel nem írjuk ki, "eltűnik".
-      Serial.write((uint8_t*)rc.data, 44);
-    }
+      int rssi = rc.rssi;
+      int calcRssi = rssi;
+      
+      int strongSignal = 40; 
+      int weakSignal = 120;
 
-    // !!! EZ KÖTELEZŐ !!! 
-    // Felszabadítja a memóriát. Enélkül betelik a RAM és lefagy az ESP.
-    rc.close(); 
+      if (calcRssi < strongSignal) calcRssi = strongSignal;
+      if (calcRssi > weakSignal) calcRssi = weakSignal;
+
+      int numLedsOn = map(calcRssi, weakSignal, strongSignal, 0, LED_COUNT);
+
+      uint32_t color;
+      if (numLedsOn <= 2) {
+        color = strip.Color(255, 0, 0);
+      } else if (numLedsOn <= 5) {
+        color = strip.Color(255, 140, 0);
+      } else {
+        color = strip.Color(0, 255, 0);
+      }
+      
+      strip.clear();
+      for (int i = 0; i < numLedsOn; i++) {
+        strip.setPixelColor(i, color);
+      }
+      strip.show();
+
+      if (count >= 5) {
+        display.clearDisplay();
+        display.setCursor(0, 10);
+        display.print(rssi - 255);
+        display.display();
+        count = 0;
+      }
+      count++;
+
+    }
+    rc.close();
+  } else {
+    if (millis() - lastSignalTime >= signalTimeout) {
+      display.clearDisplay();
+      display.setCursor(0, 10);
+      display.print("No Signal!");
+      display.display();
+
+      strip.clear();
+      for (int i = 0; i < LED_COUNT; i++) {
+        strip.setPixelColor(i, 255, 0, 0);
+      }
+      strip.show();
+    }
   }
 }

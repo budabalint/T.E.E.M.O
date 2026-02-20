@@ -2,37 +2,19 @@
 #include <config.h>
 #include <hardware_pins.h>
 
-byte calculateCRC8(const byte *data, size_t len) {
-    byte crc = 0x00;
-    while (len--) {
-        byte extract = *data++;
-        for (byte tempI = 8; tempI; tempI--) {
-        byte sum = (crc ^ extract) & 0x01;
-        crc >>= 1;
-        if (sum) {
-            crc ^= 0x8C;
-        }
-        extract >>= 1;
-        }
-    }
-    return crc;
-}
-
 Maincam::Maincam():  
     _rtspClient()
 {
 
 }
 
-void Maincam::begin() {
+bool Maincam::begin() {
     packetBuffer = (uint8_t*)malloc(BUFFER_SIZE);
     if (packetBuffer == NULL) {
-        while(1) {
-            delay(100);
-        } 
+        return false;
     }
-    Serial.begin(921600);
     Serial.setTxBufferSize(32768);
+    Serial.begin(921600);
 
     pinMode(CAM_RST, OUTPUT);
     digitalWrite(CAM_RST, LOW);  delay(100);
@@ -42,9 +24,7 @@ void Maincam::begin() {
     Ethernet.init(CAM_CS);
 
     if (Ethernet.begin(mac) == 0) {
-        while(true) { 
-            delay(1000); 
-        } 
+        return false;
     }
 
     if (_rtspClient.connect(camIP, camPort)) {
@@ -56,23 +36,20 @@ void Maincam::begin() {
 
         String setupHeaders = "Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n";
         sendRTSPCommand("SETUP", String(streamURL) + "/video", setupHeaders);
-        sessionID = readResponse(true); // GET Session id
+        sessionID = readResponse(true);
         
         if (sessionID != "") {
-        sendRTSPCommand("PLAY", streamURL, "Session: " + sessionID + "\r\nRange: npt=0.000-\r\n");
+            sendRTSPCommand("PLAY", streamURL, "Session: " + sessionID + "\r\nRange: npt=0.000-\r\n");
         } else {
-        while(true){ 
-            delay(1000); 
+            return false; 
         } 
-        }
     } else {
-        while(true) { 
-            delay(1000);
-        } 
+        return false;
     }
+    return true;
 }
 
-void Maincam::sendRTSPCommand(String method, String url, String extraHeaders = "") {
+void Maincam::sendRTSPCommand(String method, String url, String extraHeaders) {
     String cmd = method + " " + url + " RTSP/1.0\r\n";
     cmd += "CSeq: " + String(CSeq++) + "\r\n";
     cmd += "User-Agent: ESP32_CanSat_Pro\r\n";
@@ -82,7 +59,7 @@ void Maincam::sendRTSPCommand(String method, String url, String extraHeaders = "
     _rtspClient.print(cmd);
 }
 
-String Maincam::readResponse(bool lookForSession = false) {
+String Maincam::readResponse(bool lookForSession) {
     String response = "";
     String foundSession = "";
     unsigned long timeout = millis();
@@ -135,6 +112,77 @@ void Maincam::sendNALPacket(byte* data, int len, bool newNAL) {
         Serial.write(currentCRC);  // 1 bájt CRC
 
         offset += chunkLen;
-        newNAL = false; // Csak az első darab új NAL
+        newNAL = false;
+    }
+}
+
+void Maincam::ReadAndSendImage(unsigned long timeoutMaxMs) {
+    unsigned long startTime = millis();
+
+    while ((millis() - startTime < timeoutMaxMs)) {
+        if (_rtspClient.available() < 4) {
+            if (_rtspClient.available() == 0) return; 
+            continue; 
+        }
+
+        byte rtpHeaderBuf[4];
+        _rtspClient.read(rtpHeaderBuf, 4);
+
+        if (rtpHeaderBuf[0] == '$') {
+            byte channel = rtpHeaderBuf[1];
+            uint16_t packetLen = (rtpHeaderBuf[2] << 8) | rtpHeaderBuf[3];
+
+            if (packetLen > 0 && packetLen <= BUFFER_SIZE) {
+                int readLen = 0;
+                unsigned long tStartRead = millis();
+                
+                while (readLen < packetLen && (millis() - tStartRead < 100)) {
+                    int availableBytes = _rtspClient.available();
+                    if (availableBytes > 0) {
+                        int remainingBytes = packetLen - readLen;
+                        int bytesToRead = min(availableBytes, remainingBytes);
+                        _rtspClient.read(&packetBuffer[readLen], bytesToRead);
+                        readLen += bytesToRead;
+                    }
+                }
+
+                if (readLen == packetLen && channel == 0 && packetLen > 12) {
+                    byte* payload = &packetBuffer[12];
+                    int payloadLen = packetLen - 12;
+                    byte nalType = (payload[0] >> 1) & 0x3F;
+
+                    if (nalType != 38 && nalType != 35) {
+                        if (nalType >= 0 && nalType <= 47) {
+                            sendNALPacket(payload, payloadLen, true);
+                        } 
+                        else if (nalType == 49) { 
+                            byte fuHeader = payload[2];
+                            bool startBit = fuHeader & 0x80;
+                            byte reconstructedHeader[2];
+                            reconstructedHeader[0] = (payload[0] & 0x81) | ((fuHeader & 0x3F) << 1);
+                            reconstructedHeader[1] = payload[1];
+
+                            if (startBit) {
+                                sendNALPacket(reconstructedHeader, 2, true);
+                                sendNALPacket(&payload[3], payloadLen - 3, false);
+                            } else {
+                                sendNALPacket(&payload[3], payloadLen - 3, false);
+                            }
+                        }
+                    }
+                }
+            } else if (packetLen > BUFFER_SIZE) {
+                unsigned long tStart = millis();
+                uint16_t remaining = packetLen;
+                while (remaining > 0 && (millis() - tStart < 100)) {
+                    int availableBytes = _rtspClient.available();
+                    if (availableBytes > 0) {
+                        int bytesToRead = min((int)availableBytes, (int)remaining);
+                        for(int i=0; i<bytesToRead; i++) _rtspClient.read(); 
+                        remaining -= bytesToRead;
+                    }
+                }
+            }
+        }
     }
 }

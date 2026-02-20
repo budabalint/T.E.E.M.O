@@ -8,9 +8,10 @@ class Maincam {
 public:
     Maincam();
     void sendRTSPCommand(String method, String url, String extraHeaders = "");
-    void begin();
+    bool begin();
     String readResponse(bool lookForSession = false);
     void sendNALPacket(byte* data, int len, bool newNAL);
+    void ReadAndSendImage(unsigned long timeoutMaxMs);
 
 private:
     EthernetClient _rtspClient;

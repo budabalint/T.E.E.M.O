@@ -12,7 +12,16 @@ Packet packet;
 ThermalCam cam;
 
 SemaphoreHandle_t dataMutex;
-uint8_t SD_BUFFER[16384];
+volatile int writeIndex = 0;
+int readPhase = 0; 
+
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress camIP(192, 168, 0, 144);
+const int camPort = 554;
+const char* streamURL = "rtsp://192.168.0.144/stream=1";
+const char* authHeader = "Authorization: Basic cm9vdDphYWFh"; 
+
+uint8_t* packetBuffer = NULL;
 
 void printHex(void* ptr, size_t size) {
     uint8_t* data = (uint8_t*)ptr;
@@ -23,31 +32,52 @@ void printHex(void* ptr, size_t size) {
     }
     Serial.println();
 }
+uint8_t SD_BUFFER[16384];
+
+void appendData(uint8_t* data, int len) {
+    if (writeIndex + len <= 32768) {
+        memcpy(&SD_BUFFER[writeIndex], data, len);
+        writeIndex += len;
+    } else {
+        int spaceLeft = 32768 - writeIndex;
+        memcpy(&SD_BUFFER[writeIndex], data, spaceLeft);
+        memcpy(&SD_BUFFER[0], data + spaceLeft, len - spaceLeft);
+        writeIndex = len - spaceLeft;
+    }
+
+    if (writeIndex == 32768) {
+        writeIndex = 0;
+    }
+}
 
 void TaskRadioSender(void *pvParameters) {
   int sequenceCounter = 0;
   while (1) {
-    //cam.swapBuffersIfNew();
-    /*    for (int chunk = 0; chunk < 3; chunk++) {
+    /*cam.swapBuffersIfNew();
+    for (int chunk = 0; chunk < 3; chunk++) {
       for (int i = 0; i < 8; i++) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, 1);
         canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&tPacket, sizeof(ThermalPacket));
+        appendData((uint8_t*)&tPacket, sizeof(ThermalPacket));
         vTaskDelay(pdMS_TO_TICKS(12)); 
       }*/
-
+    
 
       packet.PreparePacketA_ForSending();
       uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr(); 
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
+      
+      //appendData(dataA, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
 
       packet.PreparePacketB_ForSending();
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataB, sizeof(PacketB));
+      
+      //appendData(dataB, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
     }
-
     sequenceCounter++;
   }
 
@@ -60,6 +90,7 @@ void TaskDebug(void *pvParameters) {
       for (int i = 0; i < 8; i++) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, 1);
+        
         
         //Serial.write((uint8_t*)&tPacket, sizeof(ThermalPacket));
         //printHex(&tPacket, sizeof(ThermalPacket));
@@ -75,7 +106,6 @@ void TaskDebug(void *pvParameters) {
       vTaskDelay(pdMS_TO_TICKS(12));
       packet.PreparePacketB_ForSending();
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
-
       
       //Serial.write(dataB, sizeof(PacketB));
       //printHex(dataB, 44);
@@ -97,14 +127,19 @@ void ReadThermalCam(void *pvParameters) {
 }
 
 void SPICommunication(void *pvParameters) {
-    int seq = 0;
-    char text[32] = "Ez egy 32 bájtos tesztcsomag.";
     while (1)
     {
+        /*if (readPhase == 0 && writeIndex >= 16384) {
+            canSat._file.write(&SD_BUFFER[0], 16384);
+            canSat._file.sync();
+            readPhase = 1;
+        }
+        else if (readPhase == 1 && writeIndex < 16384) {
+            canSat._file.write(&SD_BUFFER[16384], 16384);
+            canSat._file.sync();
+            readPhase = 0;
+        }*/
         packet.WriteBNODataToBuffer(1);
-        canSat._24radio.write(&text, sizeof(text));
-        delay(2);
-        seq++;
         vTaskDelay(pdMS_TO_TICKS(10)); 
     }
 }

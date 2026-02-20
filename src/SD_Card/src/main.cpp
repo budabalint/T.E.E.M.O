@@ -5,7 +5,7 @@
 #define SD_MISO  13
 #define SD_SCK   12
 #define SD_MOSI  11
-#define SD_CS    10
+#define SD_CS    45
 #define SPI_FREQ SD_SCK_MHZ(8)
 
 const size_t BUF_SIZE = 4096;

@@ -11,6 +11,7 @@
 #include <LoRa_E220.h>
 #include <Ina_Sensor.h>
 #include <RF24.h>
+#include <4Kcam.h>
 
 class CanSat {
 public:
@@ -25,6 +26,7 @@ public:
     INA_Sensor _ina3v3;
     INA_Sensor _ina12v;
     RF24 _24radio;
+    Maincam _camera;
 
 
     CanSat();
@@ -40,6 +42,7 @@ public:
     void InaBegin();
     void bus_init(int spi_speed, int i2c_speed, int serial_speed);
     void I2CScan();
+    void CameraBegin();
 
     void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
 

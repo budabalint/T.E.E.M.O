@@ -9,6 +9,7 @@
 #include <config.h>
 
 
+
 #define SPI_FREQ SD_SCK_MHZ(8)
 
 CanSat::CanSat():
@@ -22,7 +23,8 @@ CanSat::CanSat():
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
     _ina3v3(0x4F),
     _ina12v(0x4A),
-    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS, 8000000)
+    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS, 8000000),
+    _camera()
 {
     
 };
@@ -37,6 +39,7 @@ void CanSat::begin() {
     GPSBegin();
     SDBegin();
     InaBegin();
+    //CameraBegin();
     LoraRadioSetconfig();
     RF24RadioSetconfig();
 }
@@ -105,10 +108,18 @@ void CanSat::SDBegin() {
     } else {
         Serial.println("sd init sucess");
     }
-    if (!_file.open("data.bin", O_RDWR | O_CREAT | O_APPEND)) {
+    if (!_file.open("alma.bin", O_RDWR | O_CREAT | O_APPEND)) {
         Serial.println("file open failled");
     } else {
         Serial.println("sd init sucess");
+    }
+}
+
+void CanSat::CameraBegin() {
+    if (_camera.begin()) {
+        Serial.println("Sikeres kamera init.");
+    } else {
+        Serial.println("Sikertelen kamera init.");
     }
 }
 
@@ -141,7 +152,7 @@ void CanSat::LoraRadioSetconfig() {
         configuration.SPED.uartBaudRate = UART_BPS_115200;
         configuration.SPED.uartParity = MODE_00_8N1;
 
-        configuration.OPTION.transmissionPower = POWER_10;
+        configuration.OPTION.transmissionPower = POWER_17;
         configuration.OPTION.subPacketSetting = SPS_200_00;
         configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
 
