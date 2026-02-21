@@ -75,11 +75,11 @@ public:
     PacketB packetB_2;
 
     Packet();
-    void WriteI2CSensorDataToBuffer(int currentSeq,bool debug = SENSOR_DEBUG);
-    void WriteBNODataToBuffer(int currentSeq, bool debug = SENSOR_DEBUG);
+    void WriteI2CSensorDataToBuffer(bool debug = SENSOR_DEBUG);
+    void WriteBNODataToBuffer(bool debug = SENSOR_DEBUG);
     
-    void PreparePacketA_ForSending();
-    void PreparePacketB_ForSending();
+    void PreparePacketA_ForSending(uint8_t seq);
+    void PreparePacketB_ForSending(uint8_t seq);
     
     PacketA* getPacketA_ReadPtr();
     PacketB* getPacketB_ReadPtr();

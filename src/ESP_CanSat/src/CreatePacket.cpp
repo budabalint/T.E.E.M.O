@@ -36,7 +36,7 @@ PacketB* Packet::getPacketB_ReadPtr() {
     return PacketB_ReadPtr;
 }
 
-void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
+void Packet::WriteI2CSensorDataToBuffer(bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
         unsigned long t_start;
@@ -93,7 +93,6 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
 
         PacketB_WritePtr->startByte = 0xFE;
         PacketB_WritePtr->id = 0xBB;
-        PacketB_WritePtr->sequence = currentSeq;
 
         PacketB_WritePtr->temp = (uint16_t)((tempVal + 100.0f) * 100.0f);
         PacketB_WritePtr->hum = (uint16_t)(humVal * 100.0f);
@@ -128,7 +127,7 @@ void Packet::WriteI2CSensorDataToBuffer(int currentSeq, bool debug) {
     }
 }
 
-void Packet::WriteBNODataToBuffer(int currentSeq, bool debug) {
+void Packet::WriteBNODataToBuffer(bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
         unsigned long t_start;
@@ -136,7 +135,6 @@ void Packet::WriteBNODataToBuffer(int currentSeq, bool debug) {
 
         PacketA_WritePtr->startByte = 0xFE;
         PacketA_WritePtr->id = 0xAA;
-        PacketA_WritePtr->sequence = currentSeq;
         
         t_start = micros();
         canSat._bno.update();
@@ -194,22 +192,26 @@ void Packet::WriteBNODataToBuffer(int currentSeq, bool debug) {
     }
 }
 
-void Packet::PreparePacketA_ForSending() {
+void Packet::PreparePacketA_ForSending(uint8_t seq) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         PacketA* temp = PacketA_ReadPtr;
         PacketA_ReadPtr = PacketA_WritePtr;
         PacketA_WritePtr = temp;
         xSemaphoreGive(dataMutex);
     }
+    ((uint8_t*)PacketA_ReadPtr)[2] = seq;
+    
     PacketA_ReadPtr->crc = calculateCRC8((uint8_t*)PacketA_ReadPtr, sizeof(PacketA) - 1);
 }
 
-void Packet::PreparePacketB_ForSending() {
+void Packet::PreparePacketB_ForSending(uint8_t seq) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         PacketB* temp = PacketB_ReadPtr;
         PacketB_ReadPtr = PacketB_WritePtr;
         PacketB_WritePtr = temp;
         xSemaphoreGive(dataMutex);
     }
+    ((uint8_t*)PacketB_ReadPtr)[2] = seq;
+
     PacketB_ReadPtr->crc = calculateCRC8((uint8_t*)PacketB_ReadPtr, sizeof(PacketB) - 1);
 }

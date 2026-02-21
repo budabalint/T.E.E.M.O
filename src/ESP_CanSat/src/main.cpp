@@ -20,6 +20,7 @@ IPAddress camIP(192, 168, 0, 144);
 const int camPort = 554;
 const char* streamURL = "rtsp://192.168.0.144/stream=1";
 const char* authHeader = "Authorization: Basic cm9vdDphYWFh"; 
+uint8_t seq = 0;
 
 uint8_t* packetBuffer = NULL;
 
@@ -64,16 +65,18 @@ void TaskRadioSender(void *pvParameters) {
       }*/
     
 
-      packet.PreparePacketA_ForSending();
-      uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr(); 
+      packet.PreparePacketA_ForSending(seq);
+      uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr();
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
+      seq++;
       
       //appendData(dataA, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
 
-      packet.PreparePacketB_ForSending();
+      packet.PreparePacketB_ForSending(seq);
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataB, sizeof(PacketB));
+      seq++;
       
       //appendData(dataB, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
@@ -98,15 +101,15 @@ void TaskDebug(void *pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(12)); 
       }
     
-      packet.PreparePacketA_ForSending();
+      packet.PreparePacketA_ForSending(seq);
       uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr(); 
-      
+      seq++;
       //Serial.write(dataA, sizeof(PacketA));
       //printHex(dataA, 44);
       vTaskDelay(pdMS_TO_TICKS(12));
-      packet.PreparePacketB_ForSending();
+      packet.PreparePacketB_ForSending(seq);
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
-      
+      seq++;
       //Serial.write(dataB, sizeof(PacketB));
       //printHex(dataB, 44);
       
@@ -127,9 +130,9 @@ void ReadThermalCam(void *pvParameters) {
 }
 
 void SPICommunication(void *pvParameters) {
-    while (1)
-    {
-        /*if (readPhase == 0 && writeIndex >= 16384) {
+    while (1) {
+    /*{
+        if (readPhase == 0 && writeIndex >= 16384) {
             canSat._file.write(&SD_BUFFER[0], 16384);
             canSat._file.sync();
             readPhase = 1;
@@ -139,7 +142,7 @@ void SPICommunication(void *pvParameters) {
             canSat._file.sync();
             readPhase = 0;
         }*/
-        packet.WriteBNODataToBuffer(1);
+        packet.WriteBNODataToBuffer();
         vTaskDelay(pdMS_TO_TICKS(10)); 
     }
 }
@@ -147,11 +150,9 @@ void SPICommunication(void *pvParameters) {
 void ReadI2CSensors(void *pvParameters) {
     int seq = 0;
     while(1) {
-        packet.WriteI2CSensorDataToBuffer(1);
+        packet.WriteI2CSensorDataToBuffer();
         //canSat.I2CScan();
-        delay(200);
-        seq++;
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(40));
     }
 }
 
