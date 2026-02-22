@@ -52,17 +52,18 @@ void appendData(uint8_t* data, int len) {
 }
 
 void TaskRadioSender(void *pvParameters) {
-  int sequenceCounter = 0;
+  int row = 0;
+
   while (1) {
-    /*cam.swapBuffersIfNew();
+    cam.swapBuffersIfNew();
     for (int chunk = 0; chunk < 3; chunk++) {
       for (int i = 0; i < 8; i++) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, 1);
         canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&tPacket, sizeof(ThermalPacket));
-        appendData((uint8_t*)&tPacket, sizeof(ThermalPacket));
-        vTaskDelay(pdMS_TO_TICKS(12)); 
-      }*/
+        //appendData((uint8_t*)&tPacket, sizeof(ThermalPacket));
+        vTaskDelay(pdMS_TO_TICKS(5)); 
+      }
     
 
       packet.PreparePacketA_ForSending(seq);
@@ -71,7 +72,7 @@ void TaskRadioSender(void *pvParameters) {
       seq++;
       
       //appendData(dataA, 44);
-      vTaskDelay(pdMS_TO_TICKS(12));
+      vTaskDelay(pdMS_TO_TICKS(5));
 
       packet.PreparePacketB_ForSending(seq);
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
@@ -79,10 +80,10 @@ void TaskRadioSender(void *pvParameters) {
       seq++;
       
       //appendData(dataB, 44);
-      vTaskDelay(pdMS_TO_TICKS(12));
+      vTaskDelay(pdMS_TO_TICKS(5));
     }
-    sequenceCounter++;
   }
+}
 
 void TaskDebug(void *pvParameters) {
   int sequenceCounter = 0;

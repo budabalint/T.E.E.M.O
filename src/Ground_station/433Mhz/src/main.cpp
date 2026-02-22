@@ -38,7 +38,8 @@ uint8_t calculateCRC8(const uint8_t *data, size_t len) {
 
 void LoRaReaderTask(void * pvParameters) {
   for(;;) {
-    if (e220ttl.available() >= 45) {
+    while (e220ttl.available() >= 45) {
+      
       shared_lastSignalTime = millis();
       shared_hasSignal = true;
 
@@ -50,7 +51,6 @@ void LoRaReaderTask(void * pvParameters) {
         uint8_t *buffer = (uint8_t*) rc.data; 
         Serial.write(buffer, 44);
         Serial.write(rc.rssi);
-
         uint8_t receivedCRC = buffer[43]; 
         uint8_t calculatedCRC = calculateCRC8(buffer, 43);
 
@@ -58,9 +58,9 @@ void LoRaReaderTask(void * pvParameters) {
           crcErrors++; 
         }
 
-        shared_rssi_dbm = rc.rssi - 255;
+        shared_rssi_dbm = rc.rssi - 256;
       }
-      rc.close();
+      rc.close(); 
     }
     vTaskDelay(1); 
   }
@@ -124,11 +124,12 @@ void setup() {
   Serial2.begin(115200);
 
   shared_lastSignalTime = millis(); 
-  xTaskCreatePinnedToCore(LoRaReaderTask, "LoRaReader", 10000, NULL, 1, &LoRaTaskHandle, 0);
+  xTaskCreatePinnedToCore(LoRaReaderTask, "LoRaReader", 10000, NULL, 3, &LoRaTaskHandle, 0);
 
 }
 
 void loop() {
+  /**/
   static int lastNumLeds = -1;
   static uint32_t lastColor = 0;
   static unsigned long lastLoopDisplayPackets = 0; 
