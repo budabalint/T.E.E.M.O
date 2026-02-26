@@ -2,11 +2,11 @@
 #include <RF24.h>
 #include <nRF24L01.h>
 
-#define CE_PIN   4
-#define CS_PIN   5
-#define MOSI_PIN 7
-#define MISO_PIN 8
-#define CLK_PIN  6
+#define CE_PIN   40
+#define CS_PIN   14
+#define MOSI_PIN 11
+#define MISO_PIN 9
+#define CLK_PIN  12
 
 RF24 radio(CE_PIN, CS_PIN);
 
@@ -23,7 +23,7 @@ void setup() {
     while (1) {}
   }
 
-  radio.setDataRate(RF24_1MBPS);
+  radio.setDataRate(RF24_2MBPS);
   radio.setPALevel(RF24_PA_MIN);
   radio.setChannel(85);
   radio.setPayloadSize(32);
@@ -40,6 +40,6 @@ void loop() {
     char text[32] = {0};
     radio.read(&text, sizeof(text));
     Serial.println(text);
-    Serial.println(radio.testRPD());
+    //Serial.println(radio.testRPD());
   }
 }

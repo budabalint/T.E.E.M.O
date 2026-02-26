@@ -176,8 +176,8 @@ void CanSat::RF24RadioSetconfig() {
     if (!_24radio.begin()) {
         Serial.println("unsucsessful radio init");
     }
-    _24radio.setDataRate(RF24_1MBPS);
-    _24radio.setPALevel(RF24_PA_LOW); 
+    _24radio.setDataRate(RF24_2MBPS);
+    _24radio.setPALevel(RF24_PA_MIN); 
     _24radio.setChannel(CHANNEL_24); 
     _24radio.openWritingPipe(address);
     _24radio.setPayloadSize(32);
@@ -192,13 +192,13 @@ void CanSat::RF24RadioSetconfig() {
 
 void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size) {
     ResponseStatus rs = _433radio.sendFixedMessage(addh, addl, chan, msg, size);
-    
-    if (rs.code != E220_SUCCESS) {
+    /*    if (rs.code != E220_SUCCESS) {
         Serial.print("Send Error: ");
         Serial.println(rs.getResponseDescription());
     } else {
         Serial.println(rs.getResponseDescription());
-    }
+    }*/
+
 }
 
 
