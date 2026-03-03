@@ -55,24 +55,22 @@ void TaskRadioSender(void *pvParameters) {
   int row = 0;
 
   while (1) {
-    cam.swapBuffersIfNew();
-    for (int chunk = 0; chunk < 3; chunk++) {
-      for (int i = 0; i < 8; i++) {
+    /*cam.swapBuffersIfNew();
+    for (int i = 0; i < 8; i++) {
         int currentRow = (chunk * 8) + i;
         ThermalPacket tPacket = cam.getPacketFromBuffer(currentRow, 1);
         canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, (uint8_t*)&tPacket, sizeof(ThermalPacket));
         //appendData((uint8_t*)&tPacket, sizeof(ThermalPacket));
         vTaskDelay(pdMS_TO_TICKS(1)); 
-      }
-    
-
+      }*/
+    for (int chunk = 0; chunk < 3; chunk++) {
       packet.PreparePacketA_ForSending(seq);
       uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr();
       canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
       seq++;
       
       //appendData(dataA, 44);
-      vTaskDelay(pdMS_TO_TICKS(1));
+      vTaskDelay(pdMS_TO_TICKS(1)); // Ennyi időnként ad elméletileg a rádió + az auxot is nézi
 
       packet.PreparePacketB_ForSending(seq);
       uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
@@ -80,7 +78,7 @@ void TaskRadioSender(void *pvParameters) {
       seq++;
       
       //appendData(dataB, 44);
-      vTaskDelay(pdMS_TO_TICKS(1));
+      vTaskDelay(pdMS_TO_TICKS(1)); // Ennyi időnként ad elméletileg a rádió + az auxot is nézi
     }
   }
 }
@@ -139,6 +137,7 @@ void SPICommunication(void *pvParameters) {
         snprintf(payload, sizeof(payload), "Csomag: %d", szamlalo);
         canSat._24radio.write(payload, sizeof(payload));
         vTaskDelay(pdMS_TO_TICKS(10));
+        packet.WriteBNODataToBuffer();
     }
 }
 
@@ -153,13 +152,13 @@ void ReadI2CSensors(void *pvParameters) {
 
 void setup() {
   dataMutex = xSemaphoreCreateMutex();
-  
+  digitalWrite(CAM_CS, LOW);
   canSat.begin();
   delay(100);
   cam.begin(1000000);
   delay(100);
 
-  xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
+  //xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    8192, NULL, 2, NULL, 0);
