@@ -23,7 +23,6 @@ CanSat::CanSat():
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
     _ina3v3(0x4F),
     _ina12v(0x4A),
-    _24radio(RADIO_24GHZ_EN, RADIO_24GHZ_CS, 8000000),
     _camera()
 {
     
@@ -31,7 +30,7 @@ CanSat::CanSat():
 
 void CanSat::begin() {
     bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
-    delay(2000);
+    delay(100);
     BMEBegin();
     BNOBegin();
     VEMLBegin();
@@ -162,7 +161,7 @@ void CanSat::LoraRadioSetconfig() {
         configuration.ADDL = SRC_ADDL;
         configuration.CHAN = CHANNEL;
 
-        configuration.SPED.airDataRate = AIR_DATA_RATE_000_24;
+        configuration.SPED.airDataRate = AIR_DATA_RATE_111_625;
         configuration.SPED.uartBaudRate = UART_BPS_115200;
         configuration.SPED.uartParity = MODE_00_8N1;
 
@@ -199,7 +198,6 @@ void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *
     } else {
         Serial.println(rs.getResponseDescription());
     }*/
-
 }
 
 

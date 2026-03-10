@@ -42,7 +42,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
         unsigned long t_start;
         unsigned long dt_sgp = 0, dt_bme = 0, dt_gps = 0, dt_veml = 0, dt_ina = 0;
 
-        // --- ALAPÉRTELMEZETT / DUMMY ÉRTÉKEK (Hiba esetére) ---
         uint16_t tvoc = 0, co2 = 0;
         float tempVal = 0, humVal = 0, pressVal = 0;
         double latVal = 0, lngVal = 0, speedVal = 0, altVal = 0, hdopVal = 0;
@@ -50,7 +49,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
         float whiteVal = 0, luxVal = 0;
         float vol3v3 = 0, cur3v3 = 0, vol12v = 0, cur12v = 0;
 
-        // --- SGP41 OLVASÁSA ---
         if (canSat.sgp_ok) {
             t_start = micros();
             canSat._sgp.measure();
@@ -59,7 +57,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
             dt_sgp = micros() - t_start;
         }
 
-        // --- BME280 OLVASÁSA ---
         if (canSat.bme_ok) {
             t_start = micros();
             tempVal = canSat._bme.readTemperature();
@@ -68,7 +65,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
             dt_bme = micros() - t_start;
         }
 
-        // --- GPS OLVASÁSA ---
         if (canSat.gps_ok) {
             t_start = micros();
             canSat._gps.encode(); 
@@ -81,7 +77,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
             dt_gps = micros() - t_start;
         }
 
-        // --- VEML OLVASÁSA ---
         if (canSat.veml_ok) {
             t_start = micros();
             whiteVal = canSat._veml.readWhite();
@@ -89,7 +84,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
             dt_veml = micros() - t_start;
         }
 
-        // --- INA SZENZOROK OLVASÁSA ---
         t_start = micros();
         if (canSat.ina3v3_ok) {
             canSat._ina3v3.measure();
@@ -103,7 +97,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
         }
         dt_ina = micros() - t_start;
 
-        // --- CSOMAG 'A' FELTÖLTÉSE ---
         PacketA_WritePtr->TVOC_index = tvoc;
         PacketA_WritePtr->CO2_index = co2;
 
@@ -113,7 +106,6 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
         PacketA_WritePtr->voltage2 = (uint16_t)(vol12v * 1000);
         PacketA_WritePtr->current2 = (uint32_t)(cur12v * 1000);
 
-        // --- CSOMAG 'B' FELTÖLTÉSE ---
         PacketB_WritePtr->startByte = 0xFE;
         PacketB_WritePtr->id = 0xBB;
 
@@ -156,7 +148,6 @@ void Packet::WriteBNODataToBuffer(bool debug) {
         unsigned long t_start;
         unsigned long dt_update = 0, dt_orient = 0, dt_acc = 0, dt_gyro = 0, dt_mag = 0;
 
-        // Alapértelmezett értékek (ha a BNO rossz)
         float roll = 0, pitch = 0, yaw = 0;
         Vector3 acc = {0,0,0}, gyro = {0,0,0}, mag = {0,0,0};
 
@@ -191,7 +182,6 @@ void Packet::WriteBNODataToBuffer(bool debug) {
             dt_mag = micros() - t_start;
         }
 
-        // Csomag kitöltése (ha jó a szenzor, a mért adat megy, ha rossz, akkor 0)
         PacketA_WritePtr->roll = (int16_t)(roll * 100.0f);
         PacketA_WritePtr->pitch = (int16_t)(pitch * 100.0f);
         PacketA_WritePtr->yaw = (int16_t)(yaw * 100.0f);
@@ -233,7 +223,7 @@ void Packet::PreparePacketA_ForSending(uint8_t seq) {
         PacketA_WritePtr = temp;
         xSemaphoreGive(dataMutex);
     }
-    ((uint8_t*)PacketA_ReadPtr)[2] = seq; // Feltételezve hogy a 2-es index a szekvenciaszám
+    ((uint8_t*)PacketA_ReadPtr)[2] = seq;
     
     PacketA_ReadPtr->crc = calculateCRC8((uint8_t*)PacketA_ReadPtr, sizeof(PacketA) - 1);
 }

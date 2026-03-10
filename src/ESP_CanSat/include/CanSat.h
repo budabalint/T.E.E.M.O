@@ -10,7 +10,6 @@
 #include <SdFat.h>
 #include <LoRa_E220.h>
 #include <Ina_Sensor.h>
-#include <RF24.h>
 #include <4Kcam.h>
 
 class CanSat {
@@ -25,7 +24,6 @@ public:
     LoRa_E220 _433radio;
     INA_Sensor _ina3v3;
     INA_Sensor _ina12v;
-    RF24 _24radio;
     Maincam _camera;
 
 
