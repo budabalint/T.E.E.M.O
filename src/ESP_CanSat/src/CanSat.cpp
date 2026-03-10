@@ -41,29 +41,35 @@ void CanSat::begin() {
     InaBegin();
     //CameraBegin();
     LoraRadioSetconfig();
-    RF24RadioSetconfig();
+    //RF24RadioSetconfig();
 }
 
 void CanSat::InaBegin() {
     _ina3v3.begin();
     if (_ina12v.begin()) {
         Serial.println("INA_12V sikeresen elindult!");
+        bool ina12v_ok = true;
     } else {
         Serial.println("Hiba: INA_12V nem található!");
+        bool ina12v_ok = false;
     }
 
     if (_ina3v3.begin()) {
         Serial.println("INA_3V3 sikeresen elindult!");
+        bool ina3v3_ok = true;
     } else {
         Serial.println("Hiba: INA_3V3 nem található!");
+        bool ina3v3_ok = false;
     }
 }
 
 void CanSat::BMEBegin() {
     if (_bme.begin()) {
         Serial.println("BME280 sikeresen elindult!");
+        bool bme_ok = true;
     } else {
         Serial.println("Hiba: BME280 nem található!");
+        bool bme_ok = false;
     }
 }
 
@@ -72,33 +78,41 @@ void CanSat::BNOBegin() {
         Serial.println("Sikeres BNO szenzorinicializáció");
         _bno.enableSensors(); 
         digitalWrite(BNO_CS, HIGH);
+        bool bme_ok = true;
         
     } else {
         Serial.println("Sikertelen BNO inicializáció");
+        bool bme_ok = false;
     }
 }
 
 void CanSat::VEMLBegin() {
     if (_veml.begin(&Wire)) {
         Serial.println("Sikeres VEML szenzorinicializáció");
+        bool veml_ok = true;
     } else {
         Serial.println("Sikertelen VEML inicializáció");
+        bool veml_ok = false;
     }
 }
 
 void CanSat::SGPBegin() {
     if (_sgp.begin()) {
         Serial.println("Sikeres SGP30 szenzorinicializáció");
+        bool sgp_ok = true;
     } else {
         Serial.println("Sikertelen SGP30 inicializáció");
+        bool sgp_ok = false;
     }
 }
 
 void CanSat::GPSBegin() {
     if (_gps.begin(GPS_UART_SPEED)) {
         Serial.println("Sikeres GPS szenzorinicializáció");
+        bool gps_ok = true;
     } else {
         Serial.println("Sikertelen GPS inicializáció");
+        bool gps_ok = false;
     }
 }
 
@@ -152,7 +166,7 @@ void CanSat::LoraRadioSetconfig() {
         configuration.SPED.uartBaudRate = UART_BPS_115200;
         configuration.SPED.uartParity = MODE_00_8N1;
 
-        configuration.OPTION.transmissionPower = POWER_17;
+        configuration.OPTION.transmissionPower = POWER_10;
         configuration.OPTION.subPacketSetting = SPS_200_00;
         configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
 
@@ -173,20 +187,7 @@ void CanSat::LoraRadioSetconfig() {
 }
 
 void CanSat::RF24RadioSetconfig() {
-    if (!_24radio.begin()) {
-        Serial.println("unsucsessful radio init");
-    }
-    _24radio.setDataRate(RF24_2MBPS);
-    _24radio.setPALevel(RF24_PA_MIN); 
-    _24radio.setChannel(CHANNEL_24); 
-    _24radio.openWritingPipe(address);
-    _24radio.setPayloadSize(32);
-    _24radio.stopListening();
-    _24radio.setAutoAck(false);
-    
-    Serial.println("Init finished");
-    _24radio.printDetails();
-    //_24radio.write(&text, sizeof(text));
+
 }
 
 

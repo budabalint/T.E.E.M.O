@@ -40,48 +40,70 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
         unsigned long t_start;
-        unsigned long dt_sgp, dt_bme, dt_gps, dt_veml, dt_ina;
+        unsigned long dt_sgp = 0, dt_bme = 0, dt_gps = 0, dt_veml = 0, dt_ina = 0;
 
-        t_start = micros();
-        canSat._sgp.measure();
-        uint16_t tvoc = canSat._sgp.GetTVOC();
-        uint16_t co2 = canSat._sgp.GetCo2();
-        dt_sgp = micros() - t_start;
+        // --- ALAPÉRTELMEZETT / DUMMY ÉRTÉKEK (Hiba esetére) ---
+        uint16_t tvoc = 0, co2 = 0;
+        float tempVal = 0, humVal = 0, pressVal = 0;
+        double latVal = 0, lngVal = 0, speedVal = 0, altVal = 0, hdopVal = 0;
+        uint8_t satsVal = 0;
+        float whiteVal = 0, luxVal = 0;
+        float vol3v3 = 0, cur3v3 = 0, vol12v = 0, cur12v = 0;
 
-        t_start = micros();
-        float tempVal = canSat._bme.readTemperature();
-        float humVal = canSat._bme.readHumidity();
-        float pressVal = canSat._bme.readPressure();
-        dt_bme = micros() - t_start;
+        // --- SGP41 OLVASÁSA ---
+        if (canSat.sgp_ok) {
+            t_start = micros();
+            canSat._sgp.measure();
+            tvoc = canSat._sgp.GetTVOC();
+            co2 = canSat._sgp.GetCo2();
+            dt_sgp = micros() - t_start;
+        }
 
-        t_start = micros();
-        canSat._gps.encode(); 
-        double latVal = canSat._gps.getLat();
-        double lngVal = canSat._gps.getLng();
-        double speedVal = canSat._gps.getSpeed();
-        double altVal = canSat._gps.getAltitude();
-        double hdopVal = canSat._gps.getHDOP();
-        uint8_t satsVal = canSat._gps.getSatellites();
-        dt_gps = micros() - t_start;
+        // --- BME280 OLVASÁSA ---
+        if (canSat.bme_ok) {
+            t_start = micros();
+            tempVal = canSat._bme.readTemperature();
+            humVal = canSat._bme.readHumidity();
+            pressVal = canSat._bme.readPressure();
+            dt_bme = micros() - t_start;
+        }
 
-        t_start = micros();
-        float whiteVal = canSat._veml.readWhite();
-        float luxVal = canSat._veml.readLux();
-        dt_veml = micros() - t_start;
+        // --- GPS OLVASÁSA ---
+        if (canSat.gps_ok) {
+            t_start = micros();
+            canSat._gps.encode(); 
+            latVal = canSat._gps.getLat();
+            lngVal = canSat._gps.getLng();
+            speedVal = canSat._gps.getSpeed();
+            altVal = canSat._gps.getAltitude();
+            hdopVal = canSat._gps.getHDOP();
+            satsVal = canSat._gps.getSatellites();
+            dt_gps = micros() - t_start;
+        }
 
+        // --- VEML OLVASÁSA ---
+        if (canSat.veml_ok) {
+            t_start = micros();
+            whiteVal = canSat._veml.readWhite();
+            luxVal = canSat._veml.readLux();
+            dt_veml = micros() - t_start;
+        }
+
+        // --- INA SZENZOROK OLVASÁSA ---
         t_start = micros();
-        
-        canSat._ina3v3.measure();
-        float vol3v3 = canSat._ina3v3.GetVoltage();
-        float cur3v3 = canSat._ina3v3.GetCurrent();
-        
-        canSat._ina12v.measure();
-        float vol12v = canSat._ina12v.GetVoltage();
-        float cur12v = canSat._ina12v.GetCurrent();
-        
+        if (canSat.ina3v3_ok) {
+            canSat._ina3v3.measure();
+            vol3v3 = canSat._ina3v3.GetVoltage();
+            cur3v3 = canSat._ina3v3.GetCurrent();
+        }
+        if (canSat.ina12v_ok) {
+            canSat._ina12v.measure();
+            vol12v = canSat._ina12v.GetVoltage();
+            cur12v = canSat._ina12v.GetCurrent();
+        }
         dt_ina = micros() - t_start;
 
-
+        // --- CSOMAG 'A' FELTÖLTÉSE ---
         PacketA_WritePtr->TVOC_index = tvoc;
         PacketA_WritePtr->CO2_index = co2;
 
@@ -91,6 +113,7 @@ void Packet::WriteI2CSensorDataToBuffer(bool debug) {
         PacketA_WritePtr->voltage2 = (uint16_t)(vol12v * 1000);
         PacketA_WritePtr->current2 = (uint32_t)(cur12v * 1000);
 
+        // --- CSOMAG 'B' FELTÖLTÉSE ---
         PacketB_WritePtr->startByte = 0xFE;
         PacketB_WritePtr->id = 0xBB;
 
@@ -131,49 +154,60 @@ void Packet::WriteBNODataToBuffer(bool debug) {
     if (xSemaphoreTake(dataMutex, portMAX_DELAY) == pdTRUE) {
         
         unsigned long t_start;
-        unsigned long dt_update, dt_orient, dt_acc, dt_gyro, dt_mag;
+        unsigned long dt_update = 0, dt_orient = 0, dt_acc = 0, dt_gyro = 0, dt_mag = 0;
+
+        // Alapértelmezett értékek (ha a BNO rossz)
+        float roll = 0, pitch = 0, yaw = 0;
+        Vector3 acc = {0,0,0}, gyro = {0,0,0}, mag = {0,0,0};
 
         PacketA_WritePtr->startByte = 0xFE;
         PacketA_WritePtr->id = 0xAA;
         
-        t_start = micros();
-        canSat._bno.update();
-        dt_update = micros() - t_start;
+        if (canSat.bno_ok) {
+            t_start = micros();
+            canSat._bno.update();
+            dt_update = micros() - t_start;
 
-        t_start = micros();
-        float roll = canSat._bno.getRoll();
-        float pitch = canSat._bno.getPitch();
-        float yaw = canSat._bno.getYaw();
+            t_start = micros();
+            roll = canSat._bno.getRoll();
+            pitch = canSat._bno.getPitch();
+            yaw = canSat._bno.getYaw();
+            digitalWrite(BNO_CS, HIGH);
+            dt_orient = micros() - t_start;
+            
+            t_start = micros();
+            acc = canSat._bno.getLinearAcceleration();
+            digitalWrite(BNO_CS, HIGH);
+            dt_acc = micros() - t_start;
+
+            t_start = micros();
+            gyro = canSat._bno.getGyroscope();
+            digitalWrite(BNO_CS, HIGH);
+            dt_gyro = micros() - t_start;
+
+            t_start = micros();
+            mag = canSat._bno.getMagnetometer();
+            digitalWrite(BNO_CS, HIGH);
+            dt_mag = micros() - t_start;
+        }
+
+        // Csomag kitöltése (ha jó a szenzor, a mért adat megy, ha rossz, akkor 0)
         PacketA_WritePtr->roll = (int16_t)(roll * 100.0f);
         PacketA_WritePtr->pitch = (int16_t)(pitch * 100.0f);
         PacketA_WritePtr->yaw = (int16_t)(yaw * 100.0f);
-        digitalWrite(BNO_CS, HIGH);
-        dt_orient = micros() - t_start;
-        
-        t_start = micros();
-        Vector3 acc = canSat._bno.getLinearAcceleration();
+
         PacketA_WritePtr->acc_x = (int16_t)(acc.x * 100.0f);
         PacketA_WritePtr->acc_y = (int16_t)(acc.y * 100.0f);
         PacketA_WritePtr->acc_z = (int16_t)(acc.z * 100.0f);
-        digitalWrite(BNO_CS, HIGH);
-        dt_acc = micros() - t_start;
 
-        t_start = micros();
-        Vector3 gyro = canSat._bno.getGyroscope();
         PacketA_WritePtr->gyro_x = (int16_t)(gyro.x * 100.0f);
         PacketA_WritePtr->gyro_y = (int16_t)(gyro.y * 100.0f);
         PacketA_WritePtr->gyro_z = (int16_t)(gyro.z * 100.0f);
-        digitalWrite(BNO_CS, HIGH);
-        dt_gyro = micros() - t_start;
 
-        t_start = micros();
-        Vector3 mag = canSat._bno.getMagnetometer();
         PacketA_WritePtr->mag_x = (int16_t)(mag.x * 10.0f);
         PacketA_WritePtr->mag_y = (int16_t)(mag.y * 10.0f);
         PacketA_WritePtr->mag_z = (int16_t)(mag.z * 10.0f);
-        digitalWrite(BNO_CS, HIGH);
-        dt_mag = micros() - t_start;
-        
+
         if (debug) {
             Serial.println("\n-------------------- BNO085 IMU -------------------");
             Serial.println("TYPE    | TIME (us) | X / R    | Y / P    | Z / Y");
@@ -199,7 +233,7 @@ void Packet::PreparePacketA_ForSending(uint8_t seq) {
         PacketA_WritePtr = temp;
         xSemaphoreGive(dataMutex);
     }
-    ((uint8_t*)PacketA_ReadPtr)[2] = seq;
+    ((uint8_t*)PacketA_ReadPtr)[2] = seq; // Feltételezve hogy a 2-es index a szekvenciaszám
     
     PacketA_ReadPtr->crc = calculateCRC8((uint8_t*)PacketA_ReadPtr, sizeof(PacketA) - 1);
 }

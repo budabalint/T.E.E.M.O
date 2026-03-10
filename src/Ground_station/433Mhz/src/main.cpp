@@ -133,7 +133,7 @@ void loop() {
   static int lastNumLeds = -1;
   static uint32_t lastColor = 0;
   static unsigned long lastLoopDisplayPackets = 0; 
-  const unsigned long signalTimeout = 1000;
+  const unsigned long signalTimeout = 3000;
   static bool wasSignalAlive = true; 
   bool isSignalAlive = (millis() - shared_lastSignalTime < signalTimeout);
 

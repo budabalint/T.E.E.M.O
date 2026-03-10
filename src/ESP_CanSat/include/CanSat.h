@@ -43,6 +43,14 @@ public:
     void bus_init(int spi_speed, int i2c_speed, int serial_speed);
     void I2CScan();
     void CameraBegin();
+    
+    bool bme_ok = false;
+    bool bno_ok = false;
+    bool veml_ok = false;
+    bool sgp_ok = false;
+    bool gps_ok = false;
+    bool ina3v3_ok = false;
+    bool ina12v_ok = false;
 
     void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
 
