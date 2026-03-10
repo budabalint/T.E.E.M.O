@@ -6,9 +6,9 @@ const uint8_t SRC_ADDH = 0;
 const uint8_t SRC_ADDL = 1;
 const uint8_t DEST_ADDH = 0;
 const uint8_t DEST_ADDL = 2;
-const uint8_t CHANNEL = 23; 
+const uint8_t CHANNEL = 67; 
 
-const bool SENSOR_DEBUG = false;
+const bool SENSOR_DEBUG = true;
 const byte address[6] = "00001";
 const uint8_t CHANNEL_24 = 85; 
 

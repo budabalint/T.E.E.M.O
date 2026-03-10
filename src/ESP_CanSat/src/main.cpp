@@ -125,6 +125,7 @@ void SPICommunication(void *pvParameters) {
         //canSat._24radio.write(payload, sizeof(payload));
         vTaskDelay(pdMS_TO_TICKS(10));
         packet.WriteBNODataToBuffer();
+        packet.WriteBNODataToBuffer();
     }
 }
 
@@ -139,12 +140,13 @@ void ReadI2CSensors(void *pvParameters) {
 
 void setup() {
   dataMutex = xSemaphoreCreateMutex();
-  
+  digitalWrite(CAM_CS, LOW);
   canSat.begin();
   delay(100);
   cam.begin(1000000);
   delay(100);
 
+  //xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
   //xTaskCreatePinnedToCore(ReadThermalCam,   "ThermalReader",  10240, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);

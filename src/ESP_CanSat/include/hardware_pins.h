@@ -33,3 +33,4 @@ const uint8_t RADIO_24GHZ_EN = 40;
 const uint8_t RADIO_433MHZ_M1 = 47; //47
 const uint8_t RADIO_433MHZ_M0 = 48; //48
 const uint8_t RADIO_AUX = 10; //10
+
