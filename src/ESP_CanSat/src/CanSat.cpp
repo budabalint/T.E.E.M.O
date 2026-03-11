@@ -30,7 +30,7 @@ CanSat::CanSat():
 
 void CanSat::begin() {
     bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
-    delay(100);
+    delay(3000);
     BMEBegin();
     BNOBegin();
     VEMLBegin();
@@ -47,28 +47,28 @@ void CanSat::InaBegin() {
     _ina3v3.begin();
     if (_ina12v.begin()) {
         Serial.println("INA_12V sikeresen elindult!");
-        bool ina12v_ok = true;
+        ina12v_ok = true;
     } else {
         Serial.println("Hiba: INA_12V nem található!");
-        bool ina12v_ok = false;
+        ina12v_ok = false;
     }
 
     if (_ina3v3.begin()) {
         Serial.println("INA_3V3 sikeresen elindult!");
-        bool ina3v3_ok = true;
+        ina3v3_ok = true;
     } else {
         Serial.println("Hiba: INA_3V3 nem található!");
-        bool ina3v3_ok = false;
+        ina3v3_ok = false;
     }
 }
 
 void CanSat::BMEBegin() {
     if (_bme.begin()) {
         Serial.println("BME280 sikeresen elindult!");
-        bool bme_ok = true;
+        bme_ok = true;
     } else {
         Serial.println("Hiba: BME280 nem található!");
-        bool bme_ok = false;
+        bme_ok = false;
     }
 }
 
@@ -77,41 +77,41 @@ void CanSat::BNOBegin() {
         Serial.println("Sikeres BNO szenzorinicializáció");
         _bno.enableSensors(); 
         digitalWrite(BNO_CS, HIGH);
-        bool bme_ok = true;
+        bno_ok = true;
         
     } else {
         Serial.println("Sikertelen BNO inicializáció");
-        bool bme_ok = false;
+        bno_ok = false;
     }
 }
 
 void CanSat::VEMLBegin() {
     if (_veml.begin(&Wire)) {
         Serial.println("Sikeres VEML szenzorinicializáció");
-        bool veml_ok = true;
+        veml_ok = true;
     } else {
         Serial.println("Sikertelen VEML inicializáció");
-        bool veml_ok = false;
+        veml_ok = false;
     }
 }
 
 void CanSat::SGPBegin() {
     if (_sgp.begin()) {
         Serial.println("Sikeres SGP30 szenzorinicializáció");
-        bool sgp_ok = true;
+        sgp_ok = true;
     } else {
         Serial.println("Sikertelen SGP30 inicializáció");
-        bool sgp_ok = false;
+        sgp_ok = false;
     }
 }
 
 void CanSat::GPSBegin() {
     if (_gps.begin(GPS_UART_SPEED)) {
         Serial.println("Sikeres GPS szenzorinicializáció");
-        bool gps_ok = true;
+        gps_ok = true;
     } else {
         Serial.println("Sikertelen GPS inicializáció");
-        bool gps_ok = false;
+        gps_ok = false;
     }
 }
 
@@ -121,7 +121,7 @@ void CanSat::SDBegin() {
     } else {
         Serial.println("sd init sucess");
     }
-    if (!_file.open("alma.bin", O_RDWR | O_CREAT | O_APPEND)) {
+    if (!_file.open("data.bin", O_RDWR | O_CREAT | O_APPEND)) {
         Serial.println("file open failled");
     } else {
         Serial.println("sd init sucess");

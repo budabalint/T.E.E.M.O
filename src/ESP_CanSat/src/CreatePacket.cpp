@@ -1,5 +1,5 @@
 #include "Create_Packet.h"
-
+extern SemaphoreHandle_t spiMutex;
 uint8_t calculateCRC8(const uint8_t *data, size_t len) {
     uint8_t crc = 0x00;
     while (len--) {
@@ -155,31 +155,35 @@ void Packet::WriteBNODataToBuffer(bool debug) {
         PacketA_WritePtr->id = 0xAA;
         
         if (canSat.bno_ok) {
-            t_start = micros();
-            canSat._bno.update();
-            dt_update = micros() - t_start;
+            if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
+                t_start = micros();
+                canSat._bno.update();
+                dt_update = micros() - t_start;
 
-            t_start = micros();
-            roll = canSat._bno.getRoll();
-            pitch = canSat._bno.getPitch();
-            yaw = canSat._bno.getYaw();
-            digitalWrite(BNO_CS, HIGH);
-            dt_orient = micros() - t_start;
-            
-            t_start = micros();
-            acc = canSat._bno.getLinearAcceleration();
-            digitalWrite(BNO_CS, HIGH);
-            dt_acc = micros() - t_start;
+                t_start = micros();
+                roll = canSat._bno.getRoll();
+                pitch = canSat._bno.getPitch();
+                yaw = canSat._bno.getYaw();
+                digitalWrite(BNO_CS, HIGH);
+                dt_orient = micros() - t_start;
+                
+                t_start = micros();
+                acc = canSat._bno.getLinearAcceleration();
+                digitalWrite(BNO_CS, HIGH);
+                dt_acc = micros() - t_start;
 
-            t_start = micros();
-            gyro = canSat._bno.getGyroscope();
-            digitalWrite(BNO_CS, HIGH);
-            dt_gyro = micros() - t_start;
+                t_start = micros();
+                gyro = canSat._bno.getGyroscope();
+                digitalWrite(BNO_CS, HIGH);
+                dt_gyro = micros() - t_start;
 
-            t_start = micros();
-            mag = canSat._bno.getMagnetometer();
-            digitalWrite(BNO_CS, HIGH);
-            dt_mag = micros() - t_start;
+                t_start = micros();
+                mag = canSat._bno.getMagnetometer();
+                digitalWrite(BNO_CS, HIGH);
+                dt_mag = micros() - t_start;
+
+                xSemaphoreGive(spiMutex);
+            }
         }
 
         PacketA_WritePtr->roll = (int16_t)(roll * 100.0f);
