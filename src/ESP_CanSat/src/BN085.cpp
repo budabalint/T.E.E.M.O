@@ -96,7 +96,6 @@ void BNO085::update() {
                 break;
         }
     }
-    digitalWrite(BNO_CS, HIGH);
 
 }
 

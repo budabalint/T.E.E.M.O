@@ -39,25 +39,25 @@ void printHex(void* ptr, size_t size) {
 }
 
 void TaskRadioSender(void *pvParameters) {
-  while (1) {
-      packet.PreparePacketA_ForSending(seq);
-      uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr();
-      canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
-      
-      xStreamBufferSend(sdStreamBuffer, dataA, sizeof(PacketA), 0);
-      seq++;
+    while (1) {
+        packet.PreparePacketA_ForSending(seq);
+        uint8_t* dataA = (uint8_t*)packet.getPacketA_ReadPtr();
+        canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataA, sizeof(PacketA));
+        
+        xStreamBufferSend(sdStreamBuffer, dataA, sizeof(PacketA), 0);
+        seq++;
 
-      vTaskDelay(pdMS_TO_TICKS(1));
-      
-      packet.PreparePacketB_ForSending(seq);
-      uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
-      canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataB, sizeof(PacketB));
-      
-      xStreamBufferSend(sdStreamBuffer, dataB, sizeof(PacketB), 0);
-      seq++;
-      
-      vTaskDelay(pdMS_TO_TICKS(1));
-  }
+        vTaskDelay(pdMS_TO_TICKS(1));
+        
+        packet.PreparePacketB_ForSending(seq);
+        uint8_t* dataB = (uint8_t*)packet.getPacketB_ReadPtr();
+        canSat.sendRadioMsg(DEST_ADDH, DEST_ADDL, CHANNEL, dataB, sizeof(PacketB));
+        
+        xStreamBufferSend(sdStreamBuffer, dataB, sizeof(PacketB), 0);
+        seq++;
+        
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 }
 
 void TaskSDWriter(void *pvParameters) {
@@ -86,21 +86,20 @@ void TaskSDWriter(void *pvParameters) {
             unsigned long t_start = millis();
 
             if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-              digitalWrite(BNO_CS, HIGH);
-                SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
-                
+                Serial.println("1");
                 size_t written = canSat._file.write(writeCache, cachedBytes);
+                Serial.println("2");
                 canSat._file.sync();
+                Serial.println("3");
                 
-                xSemaphoreGive(spiMutex);
+                xSemaphoreGive(spiMutex); // AZONNAL elengedjük
+                vTaskDelay(pdMS_TO_TICKS(5)); // Delay a Mutexen KÍVÜL
                 
                 if (written != cachedBytes) {
                     Serial.printf("HIBA! Csak %d byte íródott ki a %d-ből!\n", written, cachedBytes);
                 } else {
                     Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
                 }
-            } else {
-                Serial.println("HIBA: Nem kaptam meg az SPI Mutex-et!");
             }
             cachedBytes = 0;
         }
@@ -108,25 +107,25 @@ void TaskSDWriter(void *pvParameters) {
 }
 
 void ReadThermalCam(void *pvParameters) {
-  uint8_t frameSeq = 0;
-  while (1) {
-    if (cam.captureFrameToBuffer()) {
-        cam.swapBuffersIfNew(); 
-        for (uint8_t row = 0; row < 24; row++) {
-            ThermalPacket tp = cam.getPacketFromBuffer(row, frameSeq);
-            xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
+    uint8_t frameSeq = 0;
+    while (1) {
+        if (cam.captureFrameToBuffer()) {
+            cam.swapBuffersIfNew(); 
+            for (uint8_t row = 0; row < 24; row++) {
+                ThermalPacket tp = cam.getPacketFromBuffer(row, frameSeq);
+                xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
+            }
+            
+            frameSeq++;
         }
-        
-        frameSeq++;
-    }
 
-    vTaskDelay(pdMS_TO_TICKS(20)); 
-  }
+        vTaskDelay(pdMS_TO_TICKS(20)); 
+    }
 }
 
 void SPICommunication(void *pvParameters) {
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(100));
         packet.WriteBNODataToBuffer();
     }
 }
@@ -139,24 +138,24 @@ void ReadI2CSensors(void *pvParameters) {
 }
 
 void setup() {
-  dataMutex = xSemaphoreCreateMutex();
-  spiMutex = xSemaphoreCreateMutex();
-  
-  sdStreamBuffer = xStreamBufferCreate(32768, 1); 
+    dataMutex = xSemaphoreCreateMutex();
+    spiMutex = xSemaphoreCreateMutex();
+    
+    sdStreamBuffer = xStreamBufferCreate(32768, 1); 
 
-  digitalWrite(CAM_CS, LOW);
-  canSat.begin();
-  delay(100);
-  cam.begin(1000000);
-  delay(100);
+    digitalWrite(CAM_CS, LOW);
+    canSat.begin();
+    delay(100);
+    cam.begin(1000000);
+    delay(100);
 
-  xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
-  xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
-  xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
+    //xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
+    xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 
 void loop() {
-  vTaskDelete(NULL);
+    vTaskDelete(NULL);
 }

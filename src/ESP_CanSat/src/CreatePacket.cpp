@@ -156,33 +156,39 @@ void Packet::WriteBNODataToBuffer(bool debug) {
         
         if (canSat.bno_ok) {
             if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
+                Serial.println("1");
+                digitalWrite(BNO_CS, HIGH);
+                Serial.println("2");
+                SPI.beginTransaction(SPISettings(BNO_SPI_SPEED, MSBFIRST, SPI_MODE3));
+                Serial.println("3");
+                delayMicroseconds(50);
+                Serial.println("4");
                 t_start = micros();
                 canSat._bno.update();
+                Serial.println("5");
                 dt_update = micros() - t_start;
 
                 t_start = micros();
                 roll = canSat._bno.getRoll();
                 pitch = canSat._bno.getPitch();
                 yaw = canSat._bno.getYaw();
-                digitalWrite(BNO_CS, HIGH);
                 dt_orient = micros() - t_start;
                 
                 t_start = micros();
                 acc = canSat._bno.getLinearAcceleration();
-                digitalWrite(BNO_CS, HIGH);
                 dt_acc = micros() - t_start;
 
                 t_start = micros();
                 gyro = canSat._bno.getGyroscope();
-                digitalWrite(BNO_CS, HIGH);
                 dt_gyro = micros() - t_start;
 
                 t_start = micros();
                 mag = canSat._bno.getMagnetometer();
-                digitalWrite(BNO_CS, HIGH);
                 dt_mag = micros() - t_start;
 
+                SPI.endTransaction();
                 xSemaphoreGive(spiMutex);
+                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
 

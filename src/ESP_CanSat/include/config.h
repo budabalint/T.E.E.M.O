@@ -12,10 +12,15 @@ const bool SENSOR_DEBUG = false;
 const byte address[6] = "00001";
 const uint8_t CHANNEL_24 = 85; 
 
-const int SPI_SPEED = 8000000; 
+const int SPI_SPEED = 8000000;
 const int I2C_SPEED = 400000; 
 const int UART_SPEED = 921600;
 const int GPS_UART_SPEED = 115200;
+
+
+const uint32_t SD_SPI_SPEED  = 20000000;
+const uint32_t BNO_SPI_SPEED = 2500000;
+const uint32_t CAM_SPI_SPEED = 2500000;
 
 
 extern byte mac[6];

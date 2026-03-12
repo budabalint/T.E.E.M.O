@@ -116,7 +116,7 @@ void CanSat::GPSBegin() {
 }
 
 void CanSat::SDBegin() {
-    if (!_sd.begin(SdSpiConfig(SD_CARD_CS, SHARED_SPI, SPI_FREQ, &SPI))) {
+    if (!_sd.begin(SdSpiConfig(SD_CARD_CS, SHARED_SPI, SD_SPI_SPEED, &SPI))) {
         Serial.println("sd init failled");
     } else {
         Serial.println("sd init sucess");
@@ -124,7 +124,7 @@ void CanSat::SDBegin() {
     if (!_file.open("data.bin", O_RDWR | O_CREAT | O_APPEND)) {
         Serial.println("file open failled");
     } else {
-        Serial.println("sd init sucess");
+        Serial.println("sd file open sucess");
     }
 }
 
