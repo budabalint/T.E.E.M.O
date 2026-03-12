@@ -156,12 +156,6 @@ void Packet::WriteBNODataToBuffer(bool debug) {
         
         if (canSat.bno_ok) {
             if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-                Serial.println("1");
-                digitalWrite(BNO_CS, HIGH);
-                Serial.println("2");
-                SPI.beginTransaction(SPISettings(BNO_SPI_SPEED, MSBFIRST, SPI_MODE3));
-                Serial.println("3");
-                delayMicroseconds(50);
                 Serial.println("4");
                 t_start = micros();
                 canSat._bno.update();
@@ -187,8 +181,8 @@ void Packet::WriteBNODataToBuffer(bool debug) {
                 dt_mag = micros() - t_start;
 
                 SPI.endTransaction();
+                vTaskDelay(pdMS_TO_TICKS(10000));
                 xSemaphoreGive(spiMutex);
-                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
 
