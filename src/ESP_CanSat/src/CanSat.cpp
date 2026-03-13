@@ -13,7 +13,7 @@
 #define SPI_FREQ SD_SCK_MHZ(8)
 
 CanSat::CanSat():
-    _bno(BNO_INT, BNO_CS, BNO_RST),
+    _bno(),
     _bme(),
     _veml(),
     _sgp(),
@@ -241,6 +241,8 @@ void CanSat::I2CScan() {
 void CanSat::bus_init(int spi_speed, int i2c_speed, int serial_speed) {
     //pinMode(SENSOR_I2C_SDA, INPUT_PULLUP);
     //pinMode(SENSOR_I2C_SCL, INPUT_PULLUP);
+    pinMode(BNO_CS, OUTPUT);
+    digitalWrite(BNO_CS, HIGH);
     SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
     SPI.setFrequency(spi_speed);
     Wire.begin(SENSOR_I2C_SDA, SENSOR_I2C_SCL);

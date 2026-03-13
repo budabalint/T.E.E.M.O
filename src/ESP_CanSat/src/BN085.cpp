@@ -1,11 +1,8 @@
 #include <BNO085.h>
 #include <Arduino.h>
 
-BNO085::BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst) : bno(rst) {
-    _cs = cs;
-    _int = bno_int;
-    _rst = rst;
-    
+// A bno(-1) mondja meg a library-nek, hogy ne használjon RST pint
+BNO085::BNO085() : bno(-1) {
     _linAccelData = {0, 0, 0};
     _gyroData = {0, 0, 0};
     _gravityData = {0, 0, 0};
@@ -15,6 +12,7 @@ BNO085::BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst) : bno(rst) {
 }
 
 bool BNO085::begin() {
+    // Csak I2C cím és a Wire busz
     if (!bno.begin_I2C(0x4B, &Wire)) {
         return false;
     }
@@ -40,18 +38,17 @@ void BNO085::enableSensors() {
     if (!bno.enableReport(SH2_MAGNETIC_FIELD_CALIBRATED, reportIntervalUs)) {
         Serial.println("Warning: Magnetometer enable failed");
     }
-    digitalWrite(BNO_CS, HIGH);
-
 }
 
 void BNO085::update() {
-        unsigned long totalStart = micros();
+    unsigned long totalStart = micros();
 
     if (bno.wasReset()) {
         enableSensors();
     }
     int biztonsagi_limit = 3;
 
+    // Ha nincs INT pin, ez automatikusan lekérdezi I2C-n, hogy van-e új adat
     while (bno.getSensorEvent(&_sensorValue) && biztonsagi_limit > 0) {
     
         biztonsagi_limit--; 
@@ -63,7 +60,6 @@ void BNO085::update() {
                 _quatData.z = _sensorValue.un.rotationVector.k;
                 _quatData.w = _sensorValue.un.rotationVector.real;
                 _newDataAvailable = true;
-
                 break;
 
             case SH2_LINEAR_ACCELERATION:
@@ -71,7 +67,6 @@ void BNO085::update() {
                 _linAccelData.y = _sensorValue.un.linearAcceleration.y;
                 _linAccelData.z = _sensorValue.un.linearAcceleration.z;
                 _newDataAvailable = true;
-                
                 break;
 
             case SH2_GYROSCOPE_CALIBRATED:
@@ -96,7 +91,6 @@ void BNO085::update() {
                 break;
         }
     }
-
 }
 
 bool BNO085::hasNewData() {
@@ -105,26 +99,11 @@ bool BNO085::hasNewData() {
     return temp;
 }
 
-Rotacio BNO085::getRotation() {
-    return _quatData;
-    
-}
-
-Vector3 BNO085::getLinearAcceleration() {
-    return _linAccelData;
-}
-
-Vector3 BNO085::getGyroscope() {
-    return _gyroData;
-}
-
-Vector3 BNO085::getGravity() {
-    return _gravityData;
-}
-
-Vector3 BNO085::getMagnetometer() {
-    return _magData;
-}
+Rotacio BNO085::getRotation() { return _quatData; }
+Vector3 BNO085::getLinearAcceleration() { return _linAccelData; }
+Vector3 BNO085::getGyroscope() { return _gyroData; }
+Vector3 BNO085::getGravity() { return _gravityData; }
+Vector3 BNO085::getMagnetometer() { return _magData; }
 
 EulerRotacio BNO085::getEulerAngle() {
     float w = _quatData.w;
@@ -151,14 +130,6 @@ EulerRotacio BNO085::getEulerAngle() {
     return angle;
 }
 
-float BNO085::getYaw() {
-    return getEulerAngle().yaw;
-}
-
-float BNO085::getRoll() {
-    return getEulerAngle().roll;
-}
-
-float BNO085::getPitch() {
-    return getEulerAngle().pitch;
-}
+float BNO085::getYaw() { return getEulerAngle().yaw; }
+float BNO085::getRoll() { return getEulerAngle().roll; }
+float BNO085::getPitch() { return getEulerAngle().pitch; }

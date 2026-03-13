@@ -20,7 +20,8 @@ struct EulerRotacio {
 class BNO085 {
 
 public:
-    BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst);
+    // Nincs szükség már semmilyen lábra paraméterként
+    BNO085();
     bool begin();
 
     void enableSensors();
@@ -41,7 +42,6 @@ public:
 
 private:
     Adafruit_BNO08x bno;
-    uint8_t _int, _cs, _rst;
 
     sh2_SensorValue_t _sensorValue;
     

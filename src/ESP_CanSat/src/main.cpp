@@ -140,8 +140,8 @@ void setup() {
     
     sdStreamBuffer = xStreamBufferCreate(32768, 1); 
 
-    digitalWrite(CAM_CS, LOW);
-    digitalWrite(BNO_RST, HIGH);
+    //digitalWrite(CAM_CS, LOW);
+    //digitalWrite(BNO_RST, HIGH);
     canSat.begin();
     delay(100);
     cam.begin(1000000);
