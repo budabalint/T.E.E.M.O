@@ -30,7 +30,7 @@ CanSat::CanSat():
 
 void CanSat::begin() {
     bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
-    delay(3000);
+    delay(5000);
     BMEBegin();
     BNOBegin();
     VEMLBegin();
@@ -73,10 +73,9 @@ void CanSat::BMEBegin() {
 }
 
 void CanSat::BNOBegin() {
-    if (_bno.begin(&SPI)) {
+    if (_bno.begin()) {
         Serial.println("Sikeres BNO szenzorinicializáció");
         _bno.enableSensors(); 
-        digitalWrite(BNO_CS, HIGH);
         bno_ok = true;
         
     } else {

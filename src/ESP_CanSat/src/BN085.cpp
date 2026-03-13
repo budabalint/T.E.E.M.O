@@ -14,8 +14,8 @@ BNO085::BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst) : bno(rst) {
     _newDataAvailable = false;
 }
 
-bool BNO085::begin(SPIClass *spi) {
-    if (!bno.begin_SPI(_cs, _int, spi)) {
+bool BNO085::begin() {
+    if (!bno.begin_I2C(0x4B, &Wire)) {
         return false;
     }
     enableSensors();

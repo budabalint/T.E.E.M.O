@@ -21,7 +21,7 @@ class BNO085 {
 
 public:
     BNO085(uint8_t bno_int, uint8_t cs, uint8_t rst);
-    bool begin(SPIClass *spi);
+    bool begin();
 
     void enableSensors();
     void update();

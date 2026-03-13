@@ -18,8 +18,7 @@ const int UART_SPEED = 921600;
 const int GPS_UART_SPEED = 115200;
 
 
-const uint32_t SD_SPI_SPEED  = 20000000;
-const uint32_t BNO_SPI_SPEED = 3000000;
+const uint32_t SD_SPI_SPEED  = 8000000;
 const uint32_t CAM_SPI_SPEED = 10000000;
 
 

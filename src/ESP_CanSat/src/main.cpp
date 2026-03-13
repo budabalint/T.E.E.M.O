@@ -86,11 +86,8 @@ void TaskSDWriter(void *pvParameters) {
             unsigned long t_start = millis();
 
             if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-                Serial.println("1");
                 size_t written = canSat._file.write(writeCache, cachedBytes);
-                Serial.println("2");
                 canSat._file.sync();
-                Serial.println("3");
                 
                 xSemaphoreGive(spiMutex); // AZONNAL elengedjük
                 vTaskDelay(pdMS_TO_TICKS(5)); // Delay a Mutexen KÍVÜL
@@ -126,14 +123,14 @@ void ReadThermalCam(void *pvParameters) {
 void SPICommunication(void *pvParameters) {
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(5000));
-        packet.WriteBNODataToBuffer();
     }
 }
 
 void ReadI2CSensors(void *pvParameters) {
     while(1) {
         packet.WriteI2CSensorDataToBuffer();
-        vTaskDelay(pdMS_TO_TICKS(40));
+        packet.WriteBNODataToBuffer();
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -144,16 +141,17 @@ void setup() {
     sdStreamBuffer = xStreamBufferCreate(32768, 1); 
 
     digitalWrite(CAM_CS, LOW);
+    digitalWrite(BNO_RST, HIGH);
     canSat.begin();
     delay(100);
     cam.begin(1000000);
     delay(100);
 
-    xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+    //xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
     xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
-    xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
+    //xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 
 void loop() {

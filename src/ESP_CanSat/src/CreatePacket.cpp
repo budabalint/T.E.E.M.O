@@ -155,11 +155,8 @@ void Packet::WriteBNODataToBuffer(bool debug) {
         PacketA_WritePtr->id = 0xAA;
         
         if (canSat.bno_ok) {
-            if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-                Serial.println("4");
                 t_start = micros();
                 canSat._bno.update();
-                Serial.println("5");
                 dt_update = micros() - t_start;
 
                 t_start = micros();
@@ -179,11 +176,6 @@ void Packet::WriteBNODataToBuffer(bool debug) {
                 t_start = micros();
                 mag = canSat._bno.getMagnetometer();
                 dt_mag = micros() - t_start;
-
-                SPI.endTransaction();
-                vTaskDelay(pdMS_TO_TICKS(10000));
-                xSemaphoreGive(spiMutex);
-            }
         }
 
         PacketA_WritePtr->roll = (int16_t)(roll * 100.0f);
