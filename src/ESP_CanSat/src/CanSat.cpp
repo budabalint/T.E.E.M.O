@@ -120,7 +120,7 @@ void CanSat::SDBegin() {
     } else {
         Serial.println("sd init sucess");
     }
-    if (!_file.open("data.bin", O_RDWR | O_CREAT | O_APPEND)) {
+    if (!_file.open(SD_FILENAME, O_RDWR | O_CREAT | O_APPEND)) {
         Serial.println("file open failled");
     } else {
         Serial.println("sd file open sucess");

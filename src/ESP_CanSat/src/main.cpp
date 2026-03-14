@@ -61,17 +61,17 @@ void TaskRadioSender(void *pvParameters) {
 }
 
 void TaskSDWriter(void *pvParameters) {
-    const size_t CHUNK_SIZE = 4096;
+    const size_t CHUNK_SIZE = 4096; // 16 KB (16 * 1024 byte)
     uint8_t* writeCache = (uint8_t*)heap_caps_malloc(CHUNK_SIZE, MALLOC_CAP_8BIT);
 
     if (writeCache == NULL) {
-        Serial.println("KRITIKUS HIBA: Nem sikerült RAM-ot foglalni az SD cache-nek!");
+        Serial.println("KRITIKUS HIBA: Nem sikerült RAM-ot foglalni az SD cache-nek (16KB)!");
         vTaskDelete(NULL);
     }
     
     size_t cachedBytes = 0;
-    Serial.println(">>> SD Writer Task sikeresen elindult! <<<");
-    
+    Serial.println(">>> SD Writer Task sikeresen elindult! (16KB Cache) <<<");
+    int counter = 0;
     while (1) {
         size_t bytesRead = xStreamBufferReceive(
             sdStreamBuffer, 
@@ -82,20 +82,25 @@ void TaskSDWriter(void *pvParameters) {
         cachedBytes += bytesRead;
 
         if (cachedBytes >= CHUNK_SIZE) {
-            Serial.print("SD Írás indul (4KB)... ");
+            //Serial.print("SD Írás indul (4KB)... ");
             unsigned long t_start = millis();
 
             if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
+                counter++;
+                // Adat kiírása és kártyára szinkronizálása
                 size_t written = canSat._file.write(writeCache, cachedBytes);
-                canSat._file.sync();
+                if (counter>= 10) {
+                    canSat._file.sync();
+                    counter = 0;
+                }
                 
-                xSemaphoreGive(spiMutex); // AZONNAL elengedjük
-                vTaskDelay(pdMS_TO_TICKS(5)); // Delay a Mutexen KÍVÜL
+                xSemaphoreGive(spiMutex);
+                vTaskDelay(pdMS_TO_TICKS(1));
                 
                 if (written != cachedBytes) {
                     Serial.printf("HIBA! Csak %d byte íródott ki a %d-ből!\n", written, cachedBytes);
                 } else {
-                    Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
+                    //Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
                 }
             }
             cachedBytes = 0;
@@ -151,7 +156,7 @@ void setup() {
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
     xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
-    //xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 
 void loop() {

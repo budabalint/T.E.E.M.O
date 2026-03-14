@@ -17,8 +17,9 @@ const int I2C_SPEED = 400000;
 const int UART_SPEED = 921600;
 const int GPS_UART_SPEED = 115200;
 
+const char SD_FILENAME[14] = "buzibence.bin";
 
-const uint32_t SD_SPI_SPEED  = 8000000;
+const uint32_t SD_SPI_SPEED  = 50000000;
 const uint32_t CAM_SPI_SPEED = 10000000;
 
 
