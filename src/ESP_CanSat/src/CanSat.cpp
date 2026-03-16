@@ -29,6 +29,7 @@ CanSat::CanSat():
 };
 
 void CanSat::begin() {
+    SetPinModes();
     bus_init(SPI_SPEED, I2C_SPEED, UART_SPEED);
     delay(5000);
     BMEBegin();
@@ -199,6 +200,20 @@ void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *
     }*/
 }
 
+void CanSat::SetPinModes() {
+    pinMode(BNO_CS, OUTPUT);
+    pinMode(RADIO_24GHZ_CS, OUTPUT);
+    pinMode(SD_CARD_CS, OUTPUT);
+    pinMode(CAM_CS, OUTPUT);
+
+    pinMode(BNO_INT, INPUT);
+    pinMode(CAM_INT, INPUT);
+    pinMode(RADIO_24GHZ_INT, INPUT);
+
+    pinMode(CAM_RST, OUTPUT);
+    pinMode(RADIO_24GHZ_EN, OUTPUT);
+    pinMode(BNO_RST, OUTPUT);
+}
 
 
 void CanSat::I2CScan() {
