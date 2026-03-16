@@ -100,7 +100,7 @@ void TaskSDWriter(void *pvParameters) {
                 if (written != cachedBytes) {
                     Serial.printf("HIBA! Csak %d byte íródott ki a %d-ből!\n", written, cachedBytes);
                 } else {
-                    //Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
+                    Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
                 }
             }
             cachedBytes = 0;
@@ -146,7 +146,8 @@ void setup() {
     sdStreamBuffer = xStreamBufferCreate(32768, 1); 
 
     //digitalWrite(CAM_CS, LOW);
-    //digitalWrite(BNO_RST, HIGH);
+    //digitalWrite(BNO_RST, HIGH);0
+    delay(1000);
     canSat.begin();
     delay(100);
     cam.begin(1000000);

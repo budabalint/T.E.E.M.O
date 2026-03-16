@@ -2,10 +2,39 @@
 #include <config.h>
 #include <hardware_pins.h>
 
+
 Maincam::Maincam():  
     _rtspClient()
 {
 
+
+}
+
+bool Maincam::checkW5500() {
+    Serial.println("W5500 hardver tesztelése...");
+    
+    pinMode(CAM_RST, OUTPUT);
+    digitalWrite(CAM_RST, LOW);  delay(100);
+    digitalWrite(CAM_RST, HIGH); delay(500);
+
+    Ethernet.init(CAM_CS);
+
+    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+        Serial.println("Kritikus Hiba: W5500 modul nem válaszol az SPI buszon!");
+        return false;
+    }
+
+    if (Ethernet.hardwareStatus() == EthernetW5500) {
+        Serial.println("Sikeres W5500 SPI kommunikáció!");
+    }
+
+    if (Ethernet.linkStatus() == LinkOFF) {
+        Serial.println("Figyelmeztetés: Nincs hálózati kábel csatlakoztatva a W5500-hoz!");
+    } else {
+        Serial.println("Hálózati kábel csatlakoztatva (Link UP)!");
+    }
+
+    return true;
 }
 
 bool Maincam::begin() {
@@ -13,26 +42,35 @@ bool Maincam::begin() {
     if (packetBuffer == NULL) {
         return false;
     }
-    Serial.setTxBufferSize(32768);
-    Serial.begin(921600);
+    //Serial.setTxBufferSize(32768);
 
-    pinMode(CAM_RST, OUTPUT);
-    digitalWrite(CAM_RST, LOW);  delay(100);
-    digitalWrite(CAM_RST, HIGH); delay(500);
+    //SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
 
-    SPI.begin(Sensor_SPI_SCL, Sensor_SPI_MISO, Sensor_SPI_MOSI);
-    Ethernet.init(CAM_CS);
-
-    if (Ethernet.begin(mac) == 0) {
-        return false;
+    if (!checkW5500()) {
+        return false; // Ha nincs SPI kapcsolat, itt megállunk
     }
 
+    IPAddress localIP(192, 168, 0, 100);    // ESP32 IP címe
+    IPAddress gateway(192, 168, 0, 1);      // Router címe
+    IPAddress subnet(255, 255, 255, 0);     // Alalhálózati maszk
+    IPAddress dns(8, 8, 8, 8);              // DNS
+    
+    Serial.println("W5500 inicializálása statikus IP-vel...");
+    Ethernet.begin(mac, localIP, dns, gateway, subnet);
+    delay(200); // Kicsi pihenő a hálózati rétegnek
+
+    if (Ethernet.linkStatus() == LinkOFF) {
+        Serial.println("Mivel nincs link, az RTSP csatlakozás ki lesz hagyva.");
+        return true; // Sikeres init, de kamera nélkül futunk tovább
+    }
+
+    Serial.println("Csatlakozás a kamerához...");
     if (_rtspClient.connect(camIP, camPort)) {
         sendRTSPCommand("OPTIONS", streamURL);
-        readResponse();
+        readResponse(false);
 
         sendRTSPCommand("DESCRIBE", streamURL, "Accept: application/sdp\r\n");
-        readResponse();
+        readResponse(false);
 
         String setupHeaders = "Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n";
         sendRTSPCommand("SETUP", String(streamURL) + "/video", setupHeaders);
@@ -40,10 +78,13 @@ bool Maincam::begin() {
         
         if (sessionID != "") {
             sendRTSPCommand("PLAY", streamURL, "Session: " + sessionID + "\r\nRange: npt=0.000-\r\n");
+            Serial.println("RTSP Stream elindítva!");
         } else {
+            Serial.println("Hiba: Nincs Session ID");
             return false; 
         } 
     } else {
+        Serial.println("Hiba: RTSP Socket csatlakozás sikertelen");
         return false;
     }
     return true;
@@ -89,30 +130,35 @@ String Maincam::readResponse(bool lookForSession) {
 void Maincam::sendNALPacket(byte* data, int len, bool newNAL) {
     static byte seq = 0; 
     int offset = 0;
+    
+    const int PACKET_SIZE = 255;
+    const int MAX_PAYLOAD = 251; // 255 - ID - Seq - LengthByte - CRC = 251
 
     while (offset < len) {
-        int chunkLen = min(30, len - offset);
+        int chunkLen = min(MAX_PAYLOAD, len - offset);
 
-        byte payload[30];
-        memset(payload, 0, 30);
-        memcpy(payload, &data[offset], chunkLen);
+        byte packetBuffer[PACKET_SIZE];
+        memset(packetBuffer, 0, PACKET_SIZE); // Feltöltjük nullákkal (padding)
 
-        byte start_flag = (newNAL ? 0x80 : 0x00);         // Bit 7: Start Flag
-        byte length_info = (byte)(chunkLen & 0x1F) << 2;  // Bit 6-2: Hossz (5 bit, 0-31), a helyére tolva
-        byte seq_info = (byte)(seq & 0x03);               // Bit 1-0: Szekvencia (2 bit, 0-3)
+        if (newNAL && offset == 0) {
+            packetBuffer[0] = 0xC1; // Új NAL frame kezdete
+        } else {
+            packetBuffer[0] = 0xC0; // Előző NAL folytatása
+        }
 
-        byte header = start_flag | length_info | seq_info;
+        packetBuffer[1] = seq;
 
-        seq = (seq + 1) & 0x03;
+        packetBuffer[2] = (byte)chunkLen;
 
-        byte currentCRC = calculateCRC8(payload, 30);
+        memcpy(&packetBuffer[3], &data[offset], chunkLen);
+        byte currentCRC = calculateCRC8(packetBuffer, PACKET_SIZE - 1);
 
-        Serial.write(header);      // 1 bájt Header
-        Serial.write(payload, 30); // 30 bájt Payload (adat + padding)
-        Serial.write(currentCRC);  // 1 bájt CRC
+        packetBuffer[PACKET_SIZE - 1] = currentCRC;
 
+        Serial.write(packetBuffer, PACKET_SIZE);
+
+        seq++;
         offset += chunkLen;
-        newNAL = false;
     }
 }
 
@@ -154,7 +200,7 @@ void Maincam::ReadAndSendImage(unsigned long timeoutMaxMs) {
                     if (nalType != 38 && nalType != 35) {
                         if (nalType >= 0 && nalType <= 47) {
                             sendNALPacket(payload, payloadLen, true);
-                        } 
+                        }
                         else if (nalType == 49) { 
                             byte fuHeader = payload[2];
                             bool startBit = fuHeader & 0x80;

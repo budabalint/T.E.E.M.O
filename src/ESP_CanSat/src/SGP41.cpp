@@ -39,10 +39,6 @@ bool SGP41::measure() {
     }
     _vocIndex = _vocAlgorithm.process(_rawVoc);
     _noxIndex = _noxAlgorithm.process(_rawNox);
-    Serial.println(_vocIndex);
-    Serial.println(_noxIndex);
-    Serial.println(_rawVoc);
-    Serial.println(_rawNox);
 
     return true;
 }

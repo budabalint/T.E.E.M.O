@@ -204,11 +204,13 @@ void CanSat::SetPinModes() {
     pinMode(BNO_CS, OUTPUT);
     pinMode(RADIO_24GHZ_CS, OUTPUT);
     pinMode(SD_CARD_CS, OUTPUT);
+    digitalWrite(SD_CARD_CS, HIGH);
     pinMode(CAM_CS, OUTPUT);
+    digitalWrite(CAM_CS, HIGH);
 
-    pinMode(BNO_INT, INPUT);
-    pinMode(CAM_INT, INPUT);
-    pinMode(RADIO_24GHZ_INT, INPUT);
+    //pinMode(BNO_INT, INPUT);
+    //pinMode(CAM_INT, INPUT);
+    //pinMode(RADIO_24GHZ_INT, INPUT);
 
     pinMode(CAM_RST, OUTPUT);
     pinMode(RADIO_24GHZ_EN, OUTPUT);

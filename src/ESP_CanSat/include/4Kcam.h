@@ -6,6 +6,7 @@
 
 class Maincam {
 public:
+    bool checkW5500();
     Maincam();
     void sendRTSPCommand(String method, String url, String extraHeaders = "");
     bool begin();
