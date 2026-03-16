@@ -31,6 +31,7 @@ public:
     void begin();
     void LoraRadioSetconfig();
     void RF24RadioSetconfig();
+    void SetPinModes();
     void BMEBegin();
     void BNOBegin();
     void VEMLBegin();
