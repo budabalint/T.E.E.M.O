@@ -214,16 +214,15 @@ void controlMotors() {
   if (target_lat == 0.0 && target_lon == 0.0) return;
 
   float yaw_error = target_yaw - current_yaw;
-
   while (yaw_error > 180.0) yaw_error -= 360.0;
   while (yaw_error < -180.0) yaw_error += 360.0;
 
   if (yaw_error > TOLERANCE_YAW) {
+    digitalWrite(Rotater_motor_backwards, LOW); 
     digitalWrite(Rotater_motor_forward, HIGH);
-    digitalWrite(Rotater_motor_backwards, LOW);
   } 
   else if (yaw_error < -TOLERANCE_YAW) {
-    digitalWrite(Rotater_motor_forward, LOW);
+    digitalWrite(Rotater_motor_forward, LOW); 
     digitalWrite(Rotater_motor_backwards, HIGH);
   } 
   else {
@@ -231,11 +230,12 @@ void controlMotors() {
     digitalWrite(Rotater_motor_backwards, LOW);
   }
 
+
   float pitch_error = target_pitch - current_pitch;
 
   if (pitch_error > TOLERANCE_PITCH) {
-    digitalWrite(Lifter_motor_forward, HIGH);
     digitalWrite(Lifter_motor_backwards, LOW);
+    digitalWrite(Lifter_motor_forward, HIGH);
   } 
   else if (pitch_error < -TOLERANCE_PITCH) {
     digitalWrite(Lifter_motor_forward, LOW);
