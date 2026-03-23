@@ -145,7 +145,7 @@ void TaskSensor(void *pvParameters) {
 }
 
 void TaskControl(void *pvParameters) {
-  static unsigned long lastDebugPrint = 0; // Segédváltozó a logoláshoz
+  static unsigned long lastDebugPrint = 0;
 
   for (;;) {
     xSemaphoreTake(dataMutex, portMAX_DELAY);
@@ -157,41 +157,31 @@ void TaskControl(void *pvParameters) {
     unsigned long lastDataTime = lastUARTDataTime;
     xSemaphoreGive(dataMutex);
 
-    // Állapotok beolvasása
     bool isManual = (digitalRead(MODE_SELECTER_BUTTON) == HIGH);
-    bool hasSignal = (millis() - lastDataTime < 1500); // 1.5 másodpercen belül jött valid UART jel
-    
-    // ==========================================
-    // 1. LED VISSZAJELZŐ LOGIKA
-    // ==========================================
-    uint32_t color = strip.Color(0, 0, 0); // Alapértelmezett: kikapcsolva
+    bool hasSignal = (millis() - lastDataTime < 1500);
+
+    uint32_t color = strip.Color(0, 0, 0);
 
     if (isManual) {
-      // MANUÁLIS MÓD
       if (hasSignal) {
-        color = strip.Color(0, 0, 255); // Sárga: Van jel, de manuálisban vagyunk
+        color = strip.Color(0, 0, 255);
       } else {
-        color = strip.Color(255, 0, 0);   // Piros: Nincs jel
+        color = strip.Color(255, 0, 0);
       }
     } else {
-      // AUTOMATA MÓD
       if (hasSignal) {
-        color = strip.Color(0, 255, 0);   // Zöld: Van jel, automata követés aktív
+        color = strip.Color(0, 255, 0);
       } else {
-        color = strip.Color(255, 255, 0);   // Piros: Nincs jel automata módban sem (Baj van)
+        color = strip.Color(255, 255, 0);
       }
     }
 
     for(int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, color);
     strip.show();
 
-    // ==========================================
-    // 2. VEZÉRLÉS LÉPTETÉSE
-    // ==========================================
-    bool r1 = LOW, r2 = LOW, r3 = LOW, r4 = LOW; // Relék aktuális állapota
+    bool r1 = LOW, r2 = LOW, r3 = LOW, r4 = LOW;
 
     if (isManual) {
-      // Manuális irányítás
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
@@ -208,7 +198,6 @@ void TaskControl(void *pvParameters) {
       r1 = btn_left; r2 = btn_right; r3 = btn_up; r4 = btn_down;
 
     } else {
-      // Automata irányítás
       if (t_lat != 0.0 && t_lon != 0.0) {
         double lat1 = tracker_lat * PI / 180.0;
         double lon1 = tracker_lon * PI / 180.0;
@@ -248,15 +237,11 @@ void TaskControl(void *pvParameters) {
       }
     }
 
-    // Relék beállítása
     digitalWrite(relay1, r1);
     digitalWrite(relay2, r2);
     digitalWrite(relay3, r3);
     digitalWrite(relay4, r4);
 
-    // ==========================================
-    // 3. DEBUG LOGOLÁS (1 másodpercenként)
-    // ==========================================
     if (millis() - lastDebugPrint > 1000) {
       lastDebugPrint = millis();
       Serial.printf("[INFO] Mód: %s | Jel: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | R1:%d R2:%d R3:%d R4:%d\n",
@@ -312,30 +297,46 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   Serial1.begin(115200, SERIAL_8N1, data_RX, data_TX);
-  Serial.println("1");
   pinMode(relay1, OUTPUT); pinMode(relay2, OUTPUT);
   pinMode(relay3, OUTPUT); pinMode(relay4, OUTPUT);
+  
   digitalWrite(relay1, LOW); digitalWrite(relay2, LOW);
   digitalWrite(relay3, LOW); digitalWrite(relay4, LOW);
-  Serial.println("2");
+  
+  pinMode(BNO_SCL,INPUT_PULLUP);
+  pinMode(BNO_SDA ,INPUT_PULLUP);
   pinMode(MODE_SELECTER_BUTTON, INPUT_PULLDOWN);
   pinMode(ANALOG_BUTTON, INPUT);
-  Serial.println("3");
 
   strip.begin();
   strip.show();
 
+
   Wire.begin(BNO_SDA, BNO_SCL);
-  if (!bno08x.begin_I2C(0x4A, &Wire)) {
-    Serial.println("Szar a bno (Nem talalhato az I2C cimen)!");
-    for(int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, strip.Color(255, 0, 0));
+  Wire.setClock(400000);
+  delay(500); 
+
+  bool bno_ok = false;
+  // Próbáljuk meg ötször inicializálni, mielőtt feladjuk
+  for (int i = 0; i < 5; i++) {
+    if (bno08x.begin_I2C(0x4A, &Wire)) {
+      bno_ok = true;
+      Serial.println("BNO08x sikeresen csatlakozott!");
+      break;
+    }
+    Serial.println("BNO init hiba, ujraprobalkozas 500ms mulva...");
+    delay(500);
+  }
+
+  if (!bno_ok) {
+    Serial.println("Szar a bno (Nem talalhato az I2C cimen 5 probalkozas utan sem)!");
+    for(int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, strip.Color(255, 0, 0)); // Váltsuk pirosra a ledet hiba esetén
     strip.show();
     
     while (1) { 
       delay(10);
     }
   }
-
   bno08x.enableReport(SH2_ROTATION_VECTOR);
 
   dataMutex = xSemaphoreCreateMutex();
