@@ -31,9 +31,9 @@ sh2_SensorValue_t sensorValue;
 
 SemaphoreHandle_t dataMutex;
 
-double target_lat = 0.0;
-double target_lon = 0.0;
-float target_alt = 0.0;
+double target_lat = 47.501117;
+double target_lon = 18.003319;
+float target_alt = 1180;
 
 float current_yaw = 0.0;   
 float current_pitch = 0.0; 
@@ -87,13 +87,17 @@ void TaskUART(void *pvParameters) {
           lastUARTDataTime = millis();
           
           if (packet.Packet_ID == 0x55) {
-            target_alt = packet.altitude;
-            target_lat = packet.latitude;
-            target_lon = packet.longitude;
+            if (packet.latitude != 0.0 && packet.longitude != 0.0) {
+              target_alt = packet.altitude;
+              target_lat = packet.latitude;
+              target_lon = packet.longitude;
+            }
           } else if (packet.Packet_ID == 0x66) {
-            tracker_alt = packet.altitude;
-            tracker_lat = packet.latitude;
-            tracker_lon = packet.longitude;
+            if (packet.latitude != 0.0 && packet.longitude != 0.0) {
+              tracker_alt = packet.altitude;
+              tracker_lat = packet.latitude;
+              tracker_lon = packet.longitude;
+            }
           }
 
           txPacket.yaw = current_yaw;
