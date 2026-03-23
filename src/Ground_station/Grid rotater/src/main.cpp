@@ -145,6 +145,8 @@ void TaskSensor(void *pvParameters) {
 }
 
 void TaskControl(void *pvParameters) {
+  static unsigned long lastDebugPrint = 0; // Segédváltozó a logoláshoz
+
   for (;;) {
     xSemaphoreTake(dataMutex, portMAX_DELAY);
     double t_lat = target_lat;
@@ -155,17 +157,44 @@ void TaskControl(void *pvParameters) {
     unsigned long lastDataTime = lastUARTDataTime;
     xSemaphoreGive(dataMutex);
 
-    uint32_t color = (millis() - lastDataTime < 1500) ? strip.Color(0, 255, 0) : strip.Color(255, 255, 0);
+    // Állapotok beolvasása
+    bool isManual = (digitalRead(MODE_SELECTER_BUTTON) == HIGH);
+    bool hasSignal = (millis() - lastDataTime < 1500); // 1.5 másodpercen belül jött valid UART jel
+    
+    // ==========================================
+    // 1. LED VISSZAJELZŐ LOGIKA
+    // ==========================================
+    uint32_t color = strip.Color(0, 0, 0); // Alapértelmezett: kikapcsolva
+
+    if (isManual) {
+      // MANUÁLIS MÓD
+      if (hasSignal) {
+        color = strip.Color(0, 0, 255); // Sárga: Van jel, de manuálisban vagyunk
+      } else {
+        color = strip.Color(255, 0, 0);   // Piros: Nincs jel
+      }
+    } else {
+      // AUTOMATA MÓD
+      if (hasSignal) {
+        color = strip.Color(0, 255, 0);   // Zöld: Van jel, automata követés aktív
+      } else {
+        color = strip.Color(255, 255, 0);   // Piros: Nincs jel automata módban sem (Baj van)
+      }
+    }
+
     for(int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, color);
     strip.show();
 
-    if (digitalRead(MODE_SELECTER_BUTTON) == HIGH) {
+    // ==========================================
+    // 2. VEZÉRLÉS LÉPTETÉSE
+    // ==========================================
+    bool r1 = LOW, r2 = LOW, r3 = LOW, r4 = LOW; // Relék aktuális állapota
+
+    if (isManual) {
+      // Manuális irányítás
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       
-      bool btn_left = false;
-      bool btn_right = false;
-      bool btn_up = false;
-      bool btn_down = false;
+      bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
       if (adc_val > 250 && adc_val <= 650) { btn_left = true; }
       else if (adc_val > 650 && adc_val <= 1000) { btn_right = true; }
@@ -176,19 +205,11 @@ void TaskControl(void *pvParameters) {
       else if (adc_val > 1930 && adc_val <= 2070) { btn_left = true; btn_down = true; }
       else if (adc_val > 2070 && adc_val <= 2300) { btn_right = true; btn_down = true; }
       
-      // Serial.printf("ADC: %d | L:%d R:%d U:%d D:%d\n", adc_val, btn_left, btn_right, btn_up, btn_down);
+      r1 = btn_left; r2 = btn_right; r3 = btn_up; r4 = btn_down;
 
-      digitalWrite(relay1, btn_left ? HIGH : LOW);
-      digitalWrite(relay2, btn_right ? HIGH : LOW);
-      digitalWrite(relay3, btn_up ? HIGH : LOW);
-      digitalWrite(relay4, btn_down ? HIGH : LOW);
-    } 
-
-    else {
-      if (t_lat == 0.0 && t_lon == 0.0) {
-        digitalWrite(relay1, LOW); digitalWrite(relay2, LOW);
-        digitalWrite(relay3, LOW); digitalWrite(relay4, LOW);
-      } else {
+    } else {
+      // Automata irányítás
+      if (t_lat != 0.0 && t_lon != 0.0) {
         double lat1 = tracker_lat * PI / 180.0;
         double lon1 = tracker_lon * PI / 180.0;
         double lat2 = t_lat * PI / 180.0;
@@ -218,33 +239,39 @@ void TaskControl(void *pvParameters) {
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
 
-        if (yaw_error > TOLERANCE_YAW) {
-          digitalWrite(relay2, LOW); 
-          digitalWrite(relay1, HIGH);
-        } else if (yaw_error < -TOLERANCE_YAW) {
-          digitalWrite(relay1, LOW); 
-          digitalWrite(relay2, HIGH);
-        } else {
-          digitalWrite(relay1, LOW); 
-          digitalWrite(relay2, LOW);
-        }
+        if (yaw_error > TOLERANCE_YAW) { r1 = HIGH; } 
+        else if (yaw_error < -TOLERANCE_YAW) { r2 = HIGH; }
 
         float pitch_error = calc_pitch - c_pitch;
-        if (pitch_error > TOLERANCE_PITCH) {
-          digitalWrite(relay4, LOW); 
-          digitalWrite(relay3, HIGH);
-        } else if (pitch_error < -TOLERANCE_PITCH) {
-          digitalWrite(relay3, LOW); 
-          digitalWrite(relay4, HIGH);
-        } else {
-          digitalWrite(relay3, LOW); 
-          digitalWrite(relay4, LOW);
-        }
+        if (pitch_error > TOLERANCE_PITCH) { r3 = HIGH; } 
+        else if (pitch_error < -TOLERANCE_PITCH) { r4 = HIGH; }
       }
     }
+
+    // Relék beállítása
+    digitalWrite(relay1, r1);
+    digitalWrite(relay2, r2);
+    digitalWrite(relay3, r3);
+    digitalWrite(relay4, r4);
+
+    // ==========================================
+    // 3. DEBUG LOGOLÁS (1 másodpercenként)
+    // ==========================================
+    if (millis() - lastDebugPrint > 1000) {
+      lastDebugPrint = millis();
+      Serial.printf("[INFO] Mód: %s | Jel: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | R1:%d R2:%d R3:%d R4:%d\n",
+        isManual ? "MANUAL" : "AUTO",
+        hasSignal ? "OK " : "ERR",
+        c_yaw, target_yaw,
+        c_pitch, target_pitch,
+        r1, r2, r3, r4
+      );
+    }
+
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 }
+
 void I2CScan() {
     byte error, address;
     int nDevices;
@@ -285,14 +312,15 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   Serial1.begin(115200, SERIAL_8N1, data_RX, data_TX);
-
+  Serial.println("1");
   pinMode(relay1, OUTPUT); pinMode(relay2, OUTPUT);
   pinMode(relay3, OUTPUT); pinMode(relay4, OUTPUT);
   digitalWrite(relay1, LOW); digitalWrite(relay2, LOW);
   digitalWrite(relay3, LOW); digitalWrite(relay4, LOW);
-
+  Serial.println("2");
   pinMode(MODE_SELECTER_BUTTON, INPUT_PULLDOWN);
   pinMode(ANALOG_BUTTON, INPUT);
+  Serial.println("3");
 
   strip.begin();
   strip.show();
