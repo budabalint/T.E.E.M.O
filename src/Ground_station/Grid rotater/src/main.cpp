@@ -190,15 +190,19 @@ void TaskControl(void *pvParameters) {
       
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
-      if (adc_val > 250 && adc_val <= 650) { btn_left = true; }
-      else if (adc_val > 650 && adc_val <= 1000) { btn_right = true; }
-      else if (adc_val > 1000 && adc_val <= 1260) { btn_up = true; }
-      else if (adc_val > 1260 && adc_val <= 1500) { btn_left = true; btn_up = true; }
-      else if (adc_val > 1500 && adc_val <= 1740) { btn_right = true; btn_up = true; }
-      else if (adc_val > 1740 && adc_val <= 1930) { btn_down = true; }
-      else if (adc_val > 1930 && adc_val <= 2070) { btn_left = true; btn_down = true; }
-      else if (adc_val > 2070 && adc_val <= 2300) { btn_right = true; btn_down = true; }
-      
+      // if (adc_val > 250 && adc_val <= 650) { btn_left = true; }
+      // else if (adc_val > 650 && adc_val <= 1000) { btn_right = true; }
+      // else if (adc_val > 1000 && adc_val <= 1260) { btn_up = true; }
+      // else if (adc_val > 1260 && adc_val <= 1500) { btn_left = true; btn_up = true; }
+      // else if (adc_val > 1500 && adc_val <= 1740) { btn_right = true; btn_up = true; }
+      // else if (adc_val > 1740 && adc_val <= 1930) { btn_down = true; }
+      // else if (adc_val > 1930 && adc_val <= 2070) { btn_left = true; btn_down = true; }
+      // else if (adc_val > 2070 && adc_val <= 2300) { btn_right = true; btn_down = true; }
+      if      (adc_val > 1700 && adc_val <= 1835) { btn_left = true;  } // ~1.44V (Középérték: 1786)
+      else if (adc_val > 1835 && adc_val <= 1980) { btn_right = true; } // ~1.52V (Középérték: 1886)
+      else if (adc_val > 2000 && adc_val <= 2300) { btn_up = true;    } // ~1.78V (Középérték: 2209)
+      else if (adc_val > 3400 && adc_val <= 3900) { btn_down = true;  } // ~2.93V (Középérték: 3636)
+      Serial.printf("ADC: %d\n", adc_val);
       r1 = btn_left; r2 = btn_right; r3 = btn_up; r4 = btn_down;
 
     } else {
