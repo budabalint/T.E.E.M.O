@@ -248,10 +248,43 @@ void TaskControl(void *pvParameters) {
     if (isManual) {
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
-      if      (adc_val > 1700 && adc_val <= 1835) { btn_left = true;  } 
-      else if (adc_val > 1835 && adc_val <= 1980) { btn_right = true; } 
-      else if (adc_val > 2000 && adc_val <= 2300) { btn_up = true;    } 
-      else if (adc_val > 3400 && adc_val <= 3900) { btn_down = true;  } 
+      // 510, 541, 621, 1548, 1677, 1715, 2013, 2866
+      if (adc_val > 400 && adc_val <= 525) { 
+        // Jobboldal
+        btn_down = true; 
+        btn_right = true; 
+      } 
+      else if (adc_val > 525 && adc_val <= 580) { 
+        // Bal felső + Jobb alsó
+        btn_up = true; 
+        btn_right = true; 
+      } 
+      else if (adc_val > 580 && adc_val <= 1085) { 
+        // Jobb alsó
+        btn_right = true; 
+      } 
+      else if (adc_val > 1085 && adc_val <= 1612) { 
+        // Jobb felső + Bal alsó
+        btn_down = true; 
+        btn_left = true; 
+      } 
+      else if (adc_val > 1612 && adc_val <= 1696) { 
+        // Jobb felső
+        btn_down = true; 
+      } 
+      else if (adc_val > 1696 && adc_val <= 1864) { 
+        // Baloldal
+        btn_up = true; 
+        btn_left = true; 
+      } 
+      else if (adc_val > 1864 && adc_val <= 2440) { 
+        // Bal felső
+        btn_up = true; 
+      } 
+      else if (adc_val > 2440 && adc_val <= 3300) { 
+        // Bal alsó
+        btn_left = true; 
+      }
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_left; r2 = btn_right; r3 = btn_up; r4 = btn_down;
