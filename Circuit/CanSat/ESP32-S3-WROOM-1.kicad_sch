@@ -2933,6 +2933,14 @@
 		(uuid "8ef5d8c4-7a06-4338-9acd-b6aa93badcdd")
 	)
 	(no_connect
+		(at 161.29 76.2)
+		(uuid "9255964f-a5d7-4c15-b285-2811eb7dc4c0")
+	)
+	(no_connect
+		(at 161.29 78.74)
+		(uuid "93f8e791-334f-4b88-9d4f-7dce688a9f31")
+	)
+	(no_connect
 		(at 196.85 63.5)
 		(uuid "a84ae4df-6ba4-4654-aa09-2f38b119db02")
 	)

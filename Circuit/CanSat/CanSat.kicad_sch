@@ -1441,6 +1441,130 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+12V"
 			(power)
 			(pin_numbers
@@ -1951,6 +2075,22 @@
 		)
 		(uuid "d10aa19b-ff32-4c03-9038-bdd14bcf7b76")
 	)
+	(junction
+		(at 87.63 177.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d9b4bdaa-5849-40e7-985a-415b127f5a18")
+	)
+	(wire
+		(pts
+			(xy 87.63 177.8) (xy 80.01 177.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "01e81337-581e-42c2-8fb4-8f15efad8380")
+	)
 	(wire
 		(pts
 			(xy 167.64 154.94) (xy 176.53 154.94)
@@ -2040,6 +2180,16 @@
 			(type default)
 		)
 		(uuid "21779ede-4df1-498d-9da1-7096e54b3965")
+	)
+	(wire
+		(pts
+			(xy 87.63 172.72) (xy 87.63 177.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "24a0baca-704b-4a9c-a9d6-2179cfdd4318")
 	)
 	(wire
 		(pts
@@ -2183,7 +2333,7 @@
 	)
 	(wire
 		(pts
-			(xy 127 55.88) (xy 137.16 55.88)
+			(xy 127 45.72) (xy 137.16 45.72)
 		)
 		(stroke
 			(width 0)
@@ -2233,7 +2383,7 @@
 	)
 	(wire
 		(pts
-			(xy 127 45.72) (xy 137.16 45.72)
+			(xy 127 55.88) (xy 137.16 55.88)
 		)
 		(stroke
 			(width 0)
@@ -2413,6 +2563,16 @@
 	)
 	(wire
 		(pts
+			(xy 95.25 182.88) (xy 105.41 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e4c35a4-ffdf-4355-95c3-49125b3c8e2c")
+	)
+	(wire
+		(pts
 			(xy 209.55 72.39) (xy 198.12 72.39)
 		)
 		(stroke
@@ -2473,7 +2633,7 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 55.88) (xy 60.96 55.88)
+			(xy 50.8 45.72) (xy 60.96 45.72)
 		)
 		(stroke
 			(width 0)
@@ -2623,6 +2783,16 @@
 	)
 	(wire
 		(pts
+			(xy 87.63 177.8) (xy 87.63 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c03d3d1b-feea-4ea1-8ada-b9198cc24f3e")
+	)
+	(wire
+		(pts
 			(xy 231.14 92.71) (xy 242.57 92.71)
 		)
 		(stroke
@@ -2653,6 +2823,16 @@
 	)
 	(wire
 		(pts
+			(xy 95.25 172.72) (xy 105.41 172.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d1e42911-4bd0-45e3-a920-b5b7f2bd25a3")
+	)
+	(wire
+		(pts
 			(xy 242.57 63.5) (xy 232.41 63.5)
 		)
 		(stroke
@@ -2673,13 +2853,23 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 45.72) (xy 60.96 45.72)
+			(xy 50.8 55.88) (xy 60.96 55.88)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "d2d6d765-747c-4374-a5d2-e564aab93684")
+	)
+	(wire
+		(pts
+			(xy 88.9 55.88) (xy 99.06 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d54498b4-0a0b-4ec1-bbef-9bd4758e1526")
 	)
 	(wire
 		(pts
@@ -2730,6 +2920,16 @@
 			(type default)
 		)
 		(uuid "e3c994aa-ab4f-43a2-b8ef-eaeb165df005")
+	)
+	(wire
+		(pts
+			(xy 88.9 45.72) (xy 99.06 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ea68f9c6-eb65-4c82-8ea9-29b1eca7db0c")
 	)
 	(wire
 		(pts
@@ -2800,6 +3000,16 @@
 			(justify right bottom)
 		)
 		(uuid "02fa9e6e-e0da-427e-984e-33f98f9a96fe")
+	)
+	(label "Slow-SDA"
+		(at 99.06 55.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "058a8325-8f90-4a3d-9c00-097cfaafbdf5")
 	)
 	(label "bno_rst"
 		(at 20.32 135.89 0)
@@ -2931,6 +3141,16 @@
 		)
 		(uuid "31290955-ba4a-4388-b38f-d8386c30d797")
 	)
+	(label "Slow-SCL"
+		(at 99.06 45.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "35d12e78-12cb-4297-acbf-987a4ada98ac")
+	)
 	(label "Fast-SDA"
 		(at 208.28 53.34 180)
 		(effects
@@ -2940,6 +3160,26 @@
 			(justify right bottom)
 		)
 		(uuid "37e9e412-fbac-4d6a-82b6-60d3aff8daf3")
+	)
+	(label "Slow-SCL"
+		(at 105.41 172.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "39e68e81-1209-4409-b37b-1817299635fd")
+	)
+	(label "Slow-SDA"
+		(at 105.41 182.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3c25c499-241d-42a7-9579-5799734762c7")
 	)
 	(label "SPI_MISO"
 		(at 20.32 143.51 0)
@@ -3112,7 +3352,7 @@
 		(uuid "8b50231b-c7d9-4864-be13-164c58d0d031")
 	)
 	(label "Slow-SDA"
-		(at 137.16 45.72 180)
+		(at 137.16 55.88 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3172,7 +3412,7 @@
 		(uuid "933119cf-dc3a-4b9d-bbfc-c2d33c50fb9a")
 	)
 	(label "Slow-SCL"
-		(at 60.96 55.88 180)
+		(at 60.96 45.72 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3272,7 +3512,7 @@
 		(uuid "bc0d15f2-e7b5-41c0-b8a1-c965e86da29a")
 	)
 	(label "Slow-SDA"
-		(at 60.96 45.72 180)
+		(at 60.96 55.88 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3282,7 +3522,7 @@
 		(uuid "be5f79be-2b43-4487-a845-90704314b1c0")
 	)
 	(label "Slow-SCL"
-		(at 137.16 55.88 180)
+		(at 137.16 45.72 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3467,6 +3707,28 @@
 	)
 	(global_label "+3.3V"
 		(shape output)
+		(at 80.01 177.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "608626a7-2361-494c-9bc6-e258c16e797d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 71.2449 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "+3.3V"
+		(shape output)
 		(at 102.87 142.24 0)
 		(fields_autoplaced yes)
 		(effects
@@ -3528,6 +3790,92 @@
 				)
 				(justify right)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 91.44 182.88 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0211c62a-eff3-439e-ba82-92a3a854acf4")
+		(property "Reference" "R14"
+			(at 91.44 176.53 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 91.44 179.07 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 91.44 184.658 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.hestore.hu/prod_getfile.php?id=3653"
+			(at 91.44 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 91.44 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Cikkszám" "100.011.42"
+			(at 91.44 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Link" "https://www.hestore.hu/prod_10001142.html"
+			(at 91.44 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "5f790f77-816f-4bca-a745-80ef7826aecc")
+		)
+		(pin "1"
+			(uuid "ef09b587-fa84-4a56-afc9-c012f0ebdc1c")
+		)
+		(instances
+			(project "CanSat"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "R14")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -3602,6 +3950,92 @@
 			(project "CanSat"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "J8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 91.44 172.72 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0cc11f13-615d-4074-88fe-582adda4d797")
+		(property "Reference" "R13"
+			(at 91.44 166.37 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 91.44 168.91 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 91.44 174.498 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.hestore.hu/prod_getfile.php?id=3653"
+			(at 91.44 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 91.44 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Cikkszám" "100.011.42"
+			(at 91.44 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Link" "https://www.hestore.hu/prod_10001142.html"
+			(at 91.44 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "0b9c0097-449a-4221-98f4-5ba0efb8bb05")
+		)
+		(pin "1"
+			(uuid "dbd3770a-a5b3-4775-84a6-bb12606b2963")
+		)
+		(instances
+			(project "CanSat"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "R13")
 					(unit 1)
 				)
 			)

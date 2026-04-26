@@ -61,6 +61,18 @@
       ],
       "drc_exclusions": [
         [
+          "courtyards_overlap|106451821|71892000|a4688bbb-b357-4a3b-bccb-a339e1d949aa|eadecdeb-e87a-4e8d-8ea6-b6b05780ddf7",
+          ""
+        ],
+        [
+          "courtyards_overlap|109905000|73725000|4e2f3157-98d8-4575-b435-3d56107734b9|a4688bbb-b357-4a3b-bccb-a339e1d949aa",
+          "nembaj"
+        ],
+        [
+          "courtyards_overlap|111855000|73725000|98f8e93f-58f5-493d-a3fd-1a1f857b5baf|a4688bbb-b357-4a3b-bccb-a339e1d949aa",
+          ""
+        ],
+        [
           "hole_clearance|102900000|123995000|c12be46e-712e-43cb-92f5-d8dae0b1b31a|0bf84fcf-6c03-4f64-b2c1-6afdb74bbc41",
           ""
         ],
@@ -568,10 +580,10 @@
       "gencad": "CM5IOUSB3.cad",
       "idf": "",
       "netlist": "CM5IO.net",
-      "plot": "V1.0/",
+      "plot": "C:/Users/nbence/Documents/cansat drawings/pcb/svgs/pcb 2",
       "pos_files": "V0_GBR/",
       "specctra_dsn": "",
-      "step": "cansat_all.step",
+      "step": "cansat_all_2.step",
       "svg": "SVG/",
       "vmrl": "",
       "vrml": ""
@@ -846,7 +858,7 @@
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
-    "plot_directory": "./SVG",
+    "plot_directory": "C:/Users/nbence/Downloads/v1_solarized_dark/",
     "space_save_all_events": true,
     "spice_adjust_passive_values": false,
     "spice_current_sheet_as_root": false,

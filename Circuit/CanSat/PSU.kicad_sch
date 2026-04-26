@@ -1861,6 +1861,16 @@
 		)
 		(uuid 8273cf96-ec0d-4e7d-bfd9-ebdb89067582)
 	)
+	(text "4F"
+		(exclude_from_sim no)
+		(at 234.95 32.766 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "04d9eb3a-54e8-42c5-baa9-da3d60b09325")
+	)
 	(text "12V"
 		(exclude_from_sim no)
 		(at 239.014 113.538 90)
@@ -1871,6 +1881,16 @@
 			(justify left)
 		)
 		(uuid "2b47d74f-a51a-4625-8ad0-c1b53c209e08")
+	)
+	(text "100 uf ek és 82 mohm"
+		(exclude_from_sim no)
+		(at 180.848 53.34 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "411e32d8-bf07-41a8-91b5-7b40b6535991")
 	)
 	(text "10n el ment a roboton"
 		(exclude_from_sim no)
@@ -1903,6 +1923,16 @@
 			(justify left)
 		)
 		(uuid "b2eb138d-ef55-4fb4-a859-47ba14f67185")
+	)
+	(text "4B"
+		(exclude_from_sim no)
+		(at 264.16 103.378 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "d1e24fba-5ee0-4e77-b3c6-f9a55cb515ad")
 	)
 	(text "GND GND		    1000000     0x40\nGND VS		    1000001     0x41\nGND SDA		    1000010     0x42\nGND SCL		    1000011     0x43\nVS GND		    1000100     0x44\nVS VS		    1000101     0x45\nVS SDA		    1000110     0x46\nVS SCL		    1000111     0x47\nSDA GND		    1001000     0x48\nSDA VS		    1001001     0x49\nSDA SDA		    1001010     0x4A\nSDA SCL		    1001011     0x4B\nSCL GND		    1001100     0x4C\nSCL VS		    1001101     0x4D\nSCL SDA		    1001110     0x4E\nSCL SCL		    1001111     0x4F"
 		(exclude_from_sim no)
@@ -2337,7 +2367,7 @@
 	)
 	(wire
 		(pts
-			(xy 171.45 147.32) (xy 173.99 147.32)
+			(xy 171.45 148.59) (xy 173.99 148.59)
 		)
 		(stroke
 			(width 0)
@@ -3037,6 +3067,16 @@
 	)
 	(wire
 		(pts
+			(xy 115.57 147.32) (xy 115.57 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "94ae2115-a112-46ad-ab7a-ccb9c49f5ba6")
+	)
+	(wire
+		(pts
 			(xy 177.8 105.41) (xy 190.5 105.41)
 		)
 		(stroke
@@ -3127,7 +3167,7 @@
 	)
 	(wire
 		(pts
-			(xy 171.45 134.62) (xy 173.99 134.62)
+			(xy 171.45 135.89) (xy 173.99 135.89)
 		)
 		(stroke
 			(width 0)
@@ -3647,6 +3687,16 @@
 	)
 	(wire
 		(pts
+			(xy 115.57 153.67) (xy 116.84 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ee621522-9a47-4fca-a345-ad0179d5f4f4")
+	)
+	(wire
+		(pts
 			(xy 240.03 114.3) (xy 240.03 119.38)
 		)
 		(stroke
@@ -3803,6 +3853,17 @@
 			)
 		)
 	)
+	(hierarchical_label "SDA"
+		(shape input)
+		(at 260.35 109.22 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "00d82dc6-cdf3-4969-940e-9c9d78029c7e")
+	)
 	(hierarchical_label "3.3V"
 		(shape input)
 		(at 240.03 67.31 0)
@@ -3824,6 +3885,28 @@
 			(justify left)
 		)
 		(uuid "0a4d413b-981b-46d6-942c-707589ac9661")
+	)
+	(hierarchical_label "SCL"
+		(shape input)
+		(at 232.41 36.83 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1169cc15-43bd-4d68-9241-466e35af0901")
+	)
+	(hierarchical_label "SDA"
+		(shape input)
+		(at 260.35 111.76 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3dc07348-a1ad-43d9-aa8a-5aa9c2da6a43")
 	)
 	(hierarchical_label "Input-Voltage"
 		(shape input)
@@ -3847,9 +3930,20 @@
 		)
 		(uuid "446dea6e-f9d4-4a83-b3f5-978136a59288")
 	)
+	(hierarchical_label "SCL"
+		(shape input)
+		(at 232.41 39.37 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "60b7e8ab-ac40-492a-b0fd-7b2ed9bb6835")
+	)
 	(hierarchical_label "12V"
 		(shape input)
-		(at 171.45 134.62 180)
+		(at 171.45 135.89 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3948,7 +4042,7 @@
 	)
 	(hierarchical_label "12V"
 		(shape input)
-		(at 171.45 147.32 180)
+		(at 171.45 148.59 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4375,7 +4469,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 177.8 147.32 90)
+		(at 177.8 148.59 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4384,7 +4478,7 @@
 		(fields_autoplaced yes)
 		(uuid "27e5ba16-665b-4899-ba01-6ec7cf99531c")
 		(property "Reference" "C31"
-			(at 177.8 139.7 90)
+			(at 177.8 140.97 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4392,7 +4486,7 @@
 			)
 		)
 		(property "Value" "100nf"
-			(at 177.8 142.24 90)
+			(at 177.8 143.51 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4400,7 +4494,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 181.61 146.3548 0)
+			(at 181.61 147.6248 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4409,7 +4503,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 177.8 147.32 0)
+			(at 177.8 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4418,7 +4512,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 177.8 147.32 0)
+			(at 177.8 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4427,7 +4521,7 @@
 			)
 		)
 		(property "Cikkszám" "100.011.22"
-			(at 177.8 147.32 90)
+			(at 177.8 148.59 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4436,7 +4530,7 @@
 			)
 		)
 		(property "Link" "https://www.hestore.hu/prod_10001122.html"
-			(at 177.8 147.32 90)
+			(at 177.8 148.59 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6225,7 +6319,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "105k"
+		(property "Value" "300k"
 			(at 142.748 127 0)
 			(effects
 				(font
@@ -6400,7 +6494,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "105k"
+		(property "Value" "300k"
 			(at 165.608 113.538 0)
 			(effects
 				(font
@@ -6644,7 +6738,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 177.8 134.62 90)
+		(at 177.8 135.89 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6653,7 +6747,7 @@
 		(fields_autoplaced yes)
 		(uuid "740d0723-a213-48f0-bf97-fbd89856f8b4")
 		(property "Reference" "C33"
-			(at 177.8 127 90)
+			(at 177.8 128.27 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6661,7 +6755,7 @@
 			)
 		)
 		(property "Value" "100nf"
-			(at 177.8 129.54 90)
+			(at 177.8 130.81 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6669,7 +6763,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 181.61 133.6548 0)
+			(at 181.61 134.9248 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6678,7 +6772,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 177.8 134.62 0)
+			(at 177.8 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6687,7 +6781,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 177.8 134.62 0)
+			(at 177.8 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6696,7 +6790,7 @@
 			)
 		)
 		(property "Cikkszám" "100.011.22"
-			(at 177.8 134.62 90)
+			(at 177.8 135.89 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6705,7 +6799,7 @@
 			)
 		)
 		(property "Link" "https://www.hestore.hu/prod_10001122.html"
-			(at 177.8 134.62 90)
+			(at 177.8 135.89 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7651,6 +7745,71 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 124.46 153.67 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a51521d4-d6ad-48b2-a1dd-582697d5a481")
+		(property "Reference" "#PWR046"
+			(at 130.81 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 128.8542 153.543 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 124.46 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 124.46 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 124.46 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9f9b711e-8848-4ead-ac46-e30340fcc0e4")
+		)
+		(instances
+			(project "CanSat"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/1be9f583-a218-4536-9010-0651b13acc0f"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 140.97 63.5 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7868,6 +8027,93 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 120.65 153.67 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b24f0a27-0210-47cd-b498-938b54975b62")
+		(property "Reference" "R15"
+			(at 121.92 151.892 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "0R"
+			(at 119.38 151.892 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 120.65 151.892 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 120.65 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 120.65 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Cikkszám" "100.491.09"
+			(at 120.65 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Link" "https://www.hestore.hu/prod_10049109.html"
+			(at 120.65 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f30f63e2-4c46-4556-8cde-9dfbfc24f86d")
+		)
+		(pin "2"
+			(uuid "6ca70356-1d53-470d-a446-59399d40c3bd")
+		)
+		(instances
+			(project "CanSat"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/1be9f583-a218-4536-9010-0651b13acc0f"
+					(reference "R15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 190.5 124.46 0)
 		(unit 1)
@@ -7875,7 +8121,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b2e71861-f49f-493e-846c-9bcc220c592b")
 		(property "Reference" "#PWR035"
 			(at 190.5 130.81 0)
@@ -7887,7 +8132,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 190.4999 128.27 90)
+			(at 190.4999 129.54 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8410,7 +8655,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "68pf"
+		(property "Value" "10nf"
 			(at 156.21 133.096 0)
 			(effects
 				(font
@@ -9614,7 +9859,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 181.61 147.32 90)
+		(at 181.61 148.59 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9622,7 +9867,7 @@
 		(dnp no)
 		(uuid "f9ada5c6-cca6-455b-aad1-13fd66e5220f")
 		(property "Reference" "#PWR041"
-			(at 187.96 147.32 0)
+			(at 187.96 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9631,7 +9876,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 186.0042 147.193 0)
+			(at 186.0042 148.463 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9639,7 +9884,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 181.61 147.32 0)
+			(at 181.61 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9648,7 +9893,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 181.61 147.32 0)
+			(at 181.61 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9657,7 +9902,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 181.61 147.32 0)
+			(at 181.61 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9832,7 +10077,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 181.61 134.62 90)
+		(at 181.61 135.89 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9840,7 +10085,7 @@
 		(dnp no)
 		(uuid "fcdc4ae1-36e6-4530-b927-84c1c93d9264")
 		(property "Reference" "#PWR042"
-			(at 187.96 134.62 0)
+			(at 187.96 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9849,7 +10094,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 186.0042 134.493 0)
+			(at 186.0042 135.763 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9857,7 +10102,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 181.61 134.62 0)
+			(at 181.61 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9866,7 +10111,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 181.61 134.62 0)
+			(at 181.61 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9875,7 +10120,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 181.61 134.62 0)
+			(at 181.61 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
