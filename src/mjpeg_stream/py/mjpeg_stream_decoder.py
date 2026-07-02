@@ -21,14 +21,13 @@ except ImportError:
     sys.exit(1)
 
 # Protokoll konstansok
-PACKET_SIZE = 126
+PACKET_SIZE = 127
 PAYLOAD_SIZE = 120
 SYNC_BYTE = 0xFE
 TYPE_MJPEG = 0xDD
 TYPE_FEC = 0xFF
 GROUP_SIZE = 9
 
-# CRC8
 def calc_crc8(data: bytes) -> int:
     crc = 0x00
     for byte in data:
@@ -83,7 +82,6 @@ STANDARD_DHT_SEGMENT = b"\xFF\xC4\x01\xA2" + \
     _build_dht_table(1, 0, _AC_LUM_COUNTS, _AC_LUM_VALUES) + \
     _build_dht_table(1, 1, _AC_CHR_COUNTS, _AC_CHR_VALUES)
 
-
 class PacketReader:
     def __init__(self, ser):
         self.ser = ser
@@ -105,17 +103,20 @@ class PacketReader:
                 continue
 
             candidate = bytes(self.buf[:PACKET_SIZE])
-            if calc_crc8(candidate[:-1]) == candidate[-1]:
+            
+            if calc_crc8(candidate[:125]) == candidate[125]:
+                rssi_val = -int(candidate[126]) 
+                
                 packets.append({
                     "type": candidate[1], "seq": candidate[2],
                     "frame_id": candidate[3], "mask": candidate[4],
-                    "payload": candidate[5:5 + PAYLOAD_SIZE]
+                    "payload": candidate[5:5 + PAYLOAD_SIZE],
+                    "rssi": rssi_val
                 })
                 del self.buf[:PACKET_SIZE]
             else:
                 del self.buf[:1]
         return packets
-
 
 class FrameAssembler:
     def __init__(self, render_queue):
@@ -126,17 +127,20 @@ class FrameAssembler:
         self.assembly = bytearray()
         self.frame_open = False
         self.dht_injected = False
-        self.last_render_size = 0  # Az optimalizációhoz
+        self.last_render_size = 0
         
         self.stats = {
             "frame_id": 0,
             "bytes_rx": 0,
             "lost_total": 0,
             "recovered_total": 0,
-            "fec_events": []
+            "fec_events": [],
+            "rssi": 0 
         }
 
     def feed(self, pkt):
+        self.stats["rssi"] = pkt.get("rssi", self.stats["rssi"])
+        
         group_num = pkt["seq"] // GROUP_SIZE
         slot = pkt["seq"] % GROUP_SIZE
 
@@ -158,7 +162,6 @@ class FrameAssembler:
 
         self.stats["fec_events"].clear()
 
-        # FEC hibajavítás
         if missing and fec is not None and len(missing) == 1:
             i = missing[0]
             f_id, mask = fec["frame_id"], fec["mask"]
@@ -189,14 +192,13 @@ class FrameAssembler:
     def _process_data_packet(self, pkt):
         current_frame_id = pkt["frame_id"]
 
-        # WATCHDOG: Ha a csomag szerint már új kép jön, de lemaradtunk a kezdetét jelző (SOI) csomagról!
-        if self.frame_open and current_frame_id != self.stats["frame_id"]:
-            # Rákényszerítjük a régi kép lezárását, nehogy végtelenül nőjön a buffer!
+        if self.frame_open and (current_frame_id != self.stats["frame_id"] or len(self.assembly) > 500000):
             self._push_to_render(complete=True)
             self.assembly = bytearray(b"\xFF\xD8")
             self.frame_open = True
             self.dht_injected = False
             self.last_render_size = 0
+            self.frame_corrupted = False   # ÚJ: új frame, tiszta lappal indulunk
             self.stats["frame_id"] = current_frame_id
 
         mask, payload = pkt["mask"], pkt["payload"]
@@ -205,12 +207,13 @@ class FrameAssembler:
             if self.frame_open:
                 self.assembly.extend(payload[:mask])
                 self._push_to_render(complete=True)
-            
+
             self.assembly = bytearray(b"\xFF\xD8")
             self.assembly.extend(payload[mask:])
             self.frame_open = True
             self.dht_injected = False
             self.last_render_size = 0
+            self.frame_corrupted = False   # ÚJ
             self.stats["frame_id"] = current_frame_id
             self.stats["bytes_rx"] = len(self.assembly)
         else:
@@ -228,14 +231,15 @@ class FrameAssembler:
     def _push_to_render(self, complete=False):
         if not self.frame_open or len(self.assembly) < 100:
             return
-            
-        # OPTIMALIZÁCIÓ: Ha nem teljes a kép, csak akkor zavarjuk az OpenCV-t, 
-        # ha legalább 8 KB friss adat jött az előző frissítés óta. 
-        # (Ez megakadályozza a CPU 100%-ra pörgését nagy képeknél).
+
+        if self.frame_corrupted:
+            # Sérült frame - ne küldjük renderelésre, inkább maradjon az előző kép
+            return
+
         if not complete:
             if len(self.assembly) - self.last_render_size < 8192:
                 return
-                
+
         self.last_render_size = len(self.assembly)
 
         frame_data = bytes(self.assembly)
@@ -268,7 +272,6 @@ def reader_thread_fn(ser, assembler, stop_event):
         if not packets:
             time.sleep(0.001)
 
-
 def draw_dashboard(canvas, stats, complete, fps, decode_ok):
     h, w, _ = canvas.shape
     dash_w = 300
@@ -291,6 +294,16 @@ def draw_dashboard(canvas, stats, complete, fps, decode_ok):
     else:
         put_text(f"Status: {'[ KESZ ]' if complete else 'TOLTES...'} ", color=(0, 255, 0) if complete else (0, 165, 255))
         
+    rssi = stats.get('rssi', 0)
+    if rssi > -70:
+        rssi_color = (0, 255, 0)
+    elif rssi > -90:
+        rssi_color = (0, 255, 255)
+    else:
+        rssi_color = (0, 0, 255)
+        
+    put_text(f"RSSI: {rssi} dBm", color=rssi_color, size=0.6, thickness=1)
+    
     put_text(f"Frame ID: {stats.get('frame_id', 0)}")
     put_text(f"Buffer: {stats.get('bytes_rx', 0)} bytes")
     put_text(f"Render FPS: {fps:.1f}")

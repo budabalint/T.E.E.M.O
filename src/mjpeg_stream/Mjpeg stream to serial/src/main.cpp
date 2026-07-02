@@ -221,6 +221,12 @@ void setup() {
     return;
   }
   Serial.println("LittleFS mount OK");
+  File root = LittleFS.open("/");
+  File file = root.openNextFile();
+  while (file) {
+    Serial.printf("Fajl: %s, meret: %u\n", file.name(), (unsigned)file.size());
+    file = root.openNextFile();
+  }
 
   // Kis szünet, hogy a PC oldali script biztosan el tudja indítani a portot
   // olvasásra, mielőtt az első bináris bájt megérkezik.
