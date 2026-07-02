@@ -28,7 +28,7 @@ void setFlag(void) {
 void setupRadio() {
   Serial.println("[SX1280] VEVŐ inicializálás (Interrupt mód)...");
 
-  int state = radio.beginFLRC(2486.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5); // +0 dBm elég teszthez
+  int state = radio.beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5); // +0 dBm elég teszthez
   if (state != RADIOLIB_ERR_NONE) {
     Serial.print("Hiba az indulásnál: "); Serial.println(state);
     while (1);
