@@ -7,16 +7,33 @@
 
 #define SX1280_NSS    15
 #define SX1280_DIO1   8
-#define SX1280_NRST   16  
+#define SX1280_NRST   16
 #define SX1280_BUSY   6
 
-SPIClass customSPI(FSPI); 
+SPIClass customSPI(FSPI);
 Module* module = new Module(SX1280_NSS, SX1280_DIO1, SX1280_NRST, SX1280_BUSY, customSPI);
 SX1280 radio(module);
 
-uint8_t videoPacket[126];
+#define PACKET_LEN 126
+
+uint8_t videoPacket[PACKET_LEN];
 
 volatile bool receivedFlag = false;
+
+// CRC8 algoritmus (poly 0x8C)
+uint8_t calcCRC8(const uint8_t* data, size_t len) {
+  uint8_t crc = 0x00;
+  for (size_t i = 0; i < len; i++) {
+    uint8_t extract = data[i];
+    for (int j = 0; j < 8; j++) {
+      uint8_t sum_bit = (crc ^ extract) & 0x01;
+      crc >>= 1;
+      if (sum_bit) crc ^= 0x8C;
+      extract >>= 1;
+    }
+  }
+  return crc;
+}
 
 #if defined(ESP8266) || defined(ESP32)
   IRAM_ATTR
@@ -26,34 +43,27 @@ void setFlag(void) {
 }
 
 void setupRadio() {
-  Serial.println("[SX1280] VEVŐ inicializálás (Interrupt mód)...");
-
-  int state = radio.beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5); // +0 dBm elég teszthez
+  int state = radio.beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
   if (state != RADIOLIB_ERR_NONE) {
-    Serial.print("Hiba az indulásnál: "); Serial.println(state);
+    // Hiba esetén végtelen ciklus (villogtathatsz egy LED-et itt, ha kell)
     while (1);
   }
-  
+
   uint8_t syncWord[] = { 0xC1, 0xA2, 0xB3, 0xD4 };
   radio.setSyncWord(syncWord, 4);
-  radio.setCRC(2);
-  
-  radio.fixedPacketLengthMode(126);
+  radio.setCRC(2); // Rádiós szintű (hardveres) CRC
+
+  radio.fixedPacketLengthMode(PACKET_LEN);
   radio.setHighSensitivityMode(true);
   radio.setDio1Action(setFlag);
 
-  state = radio.startReceive();
-  if (state == RADIOLIB_ERR_NONE) {
-    Serial.println("[SX1280] Vevő megszakításos módban, várja a jelet...");
-  } else {
-    Serial.print("Hiba a vétel indításakor: "); Serial.println(state);
-  }
+  radio.startReceive();
 }
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
-  
+  delay(100);
+
   customSPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, -1);
   setupRadio();
 }
@@ -62,23 +72,32 @@ void loop() {
   if (receivedFlag) {
     receivedFlag = false;
 
-    int state = radio.readData(videoPacket, 126);
+    int state = radio.readData(videoPacket, PACKET_LEN);
 
     if (state == RADIOLIB_ERR_NONE) {
-      uint16_t receivedCounter = (videoPacket[0] << 8) | videoPacket[1];
-      Serial.print("[RX] JÓ CSOMAG! Sorszám: ");
-      Serial.print(receivedCounter);
-      Serial.print(" | RSSI: ");
-      Serial.print(radio.getRSSI());
-      Serial.println(" dBm");
-    } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
-      Serial.println("[RX] Sérült csomag (CRC)!");
-    } else {
-      Serial.print("[RX] Olvasási hiba: ");
-      Serial.println(state);
+      // Csak akkor foglalkozunk vele, ha a Start ID megfelelő
+      if (videoPacket[0] == 0xDD) {
+        
+        uint8_t crcCalc = calcCRC8(videoPacket, PACKET_LEN - 1);
+        uint8_t crcRecv = videoPacket[PACKET_LEN - 1];
+
+        // Ha a CRC is jó, kiküldjük soros porton a nyers bájtokat
+        if (crcCalc == crcRecv) {
+          
+          // RSSI lekérése (float), és konvertálása 8-bites előjeles egésszé (pl. -85 dBm -> -85)
+          float rssi_float = radio.getRSSI();
+          int8_t rssi = (int8_t)rssi_float; 
+
+          // 1. Kiküldjük a 126 bájtos csomagot
+          Serial.write(videoPacket, PACKET_LEN);
+          
+          // 2. Hozzácsapjuk az 1 bájtos RSSI értéket a végéhez
+          Serial.write((uint8_t*)&rssi, 1);
+        }
+      }
     }
 
-    // Mivel kiolvastuk az adatot, újra ráparancsolunk a rádióra, hogy figyeljen tovább!
+    // Újra ráparancsolunk a rádióra, hogy figyeljen tovább!
     radio.startReceive();
   }
 }
