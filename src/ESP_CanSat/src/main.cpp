@@ -38,6 +38,10 @@ void printHex(void* ptr, size_t size) {
     Serial.println();
 }
 
+// void SendThermalPacketSerial(ThermalPacket &tp) {
+//     Serial.write((uint8_t*)&tp, sizeof(ThermalPacket)); // 126 bájt nyers kiírása
+// }
+
 void TaskRadioSender(void *pvParameters) {
     while (1) {
         packet.PreparePacketA_ForSending(seq);
@@ -98,9 +102,9 @@ void TaskSDWriter(void *pvParameters) {
                 vTaskDelay(pdMS_TO_TICKS(1));
                 
                 if (written != cachedBytes) {
-                    Serial.printf("HIBA! Csak %d byte íródott ki a %d-ből!\n", written, cachedBytes);
+                    // Serial.printf("HIBA! Csak %d byte íródott ki a %d-ből!\n", written, cachedBytes);
                 } else {
-                    Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
+                    // Serial.printf("Kész! %lu ms alatt.\n", millis() - t_start);
                 }
             }
             cachedBytes = 0;
@@ -109,19 +113,19 @@ void TaskSDWriter(void *pvParameters) {
 }
 
 void ReadThermalCam(void *pvParameters) {
-    uint8_t frameSeq = 0;
+    uint16_t frameSeq = 0;
     while (1) {
         if (cam.captureFrameToBuffer()) {
-            cam.swapBuffersIfNew(); 
-            for (uint8_t row = 0; row < 24; row++) {
-                ThermalPacket tp = cam.getPacketFromBuffer(row, frameSeq);
+            cam.swapBuffersIfNew();
+            for (uint8_t group = 0; group < 8; group++) {
+                ThermalPacket tp = cam.getPacketFromBuffer(group, frameSeq);
+                Serial.write((uint8_t*)&tp, sizeof(ThermalPacket));
+                Serial.write((uint8_t)0);
                 xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
             }
-            
             frameSeq++;
         }
-
-        vTaskDelay(pdMS_TO_TICKS(20)); 
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 

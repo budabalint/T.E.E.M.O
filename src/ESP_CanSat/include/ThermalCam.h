@@ -3,20 +3,19 @@
 #include <Arduino.h>
 
 struct __attribute__((packed)) ThermalPacket {
-    uint8_t startByte = 0xFE;
-    uint8_t id;
-    uint8_t sequence;
-
-    uint8_t data[40];
-
-    uint8_t crc;
+    uint8_t  startByte;   // 0xFE
+    uint8_t  packetId;    // 0xCC
+    uint8_t  groupId;     // 0-7, melyik 3-soros csoport
+    uint16_t frameSeq;    // frame számláló (2 bájt)
+    uint8_t  data[120];   // 3 sor kép, soronként 40 bájt
+    uint8_t  crc;         // CRC8
 };
 
 class ThermalCam {
 public:
     void begin(int i2c_speed);
     bool captureFrameToBuffer();
-    ThermalPacket getPacketFromBuffer(uint8_t row, uint8_t seq);
+    ThermalPacket getPacketFromBuffer(uint8_t groupId, uint16_t frameSeq);
     void swapBuffersIfNew();
     bool hasNewFrame();
     ThermalCam();

@@ -37,6 +37,11 @@ void setup() {
   Serial.println("Kész.");
 }
 
+
+
+// pio run -t erase
+// pio run --target uploadfs
+// pio run --target upload
 void loop() {
   // üres loop is elég, nem kell a while(1) trükk
   delay(1000);

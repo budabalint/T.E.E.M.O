@@ -106,7 +106,7 @@ class BitrateEstimator:
                         i += 1
                 else:
                     length = (frame_bytes[i + 2] << 8) + frame_bytes[i + 3]
-                    if marker in (0xDB, 0xC4, 0xE0):
+                    if marker in (0xC4, 0xE0):
                         i += 2 + length
                     else:
                         out.extend(frame_bytes[i : i + 2 + length])

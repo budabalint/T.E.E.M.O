@@ -68,37 +68,41 @@ void ThermalCam::swapBuffersIfNew() {
     }
 }
 
-ThermalPacket ThermalCam::getPacketFromBuffer(uint8_t row, uint8_t seq) {
+ThermalPacket ThermalCam::getPacketFromBuffer(uint8_t groupId, uint16_t frameSeq) {
     ThermalPacket packet;
     packet.startByte = 0xFE;
-    packet.id = row;
-    packet.sequence = seq;
-    
-    uint16_t* currentPixels = readPtr; 
+    packet.packetId  = 0xCC;
+    packet.groupId   = groupId;
+    packet.frameSeq  = frameSeq;
 
-    uint8_t RowBytes[40];
-    uint16_t data[4];
+    uint16_t* currentPixels = readPtr;
     int index = 0;
-    int startPixel = row * 32;
 
-    for (int i = 0; i < 8; i++) {
-        int pIdx = startPixel + (i * 4);
-        
-        if (pIdx + 3 >= MLX90642_TOTAL_NUMBER_OF_PIXELS) break;
+    for (int r = 0; r < 3; r++) {
+        int row = groupId * 3 + r;
+        int startPixel = row * 32;
+        uint16_t data[4];
 
-        data[0] = (uint16_t)(currentPixels[pIdx + 0] / 5);
-        data[1] = (uint16_t)(currentPixels[pIdx + 1] / 5);
-        data[2] = (uint16_t)(currentPixels[pIdx + 2] / 5);
-        data[3] = (uint16_t)(currentPixels[pIdx + 3] / 5);
+        for (int i = 0; i < 8; i++) {
+            int pIdx = startPixel + (i * 4);
 
-        RowBytes[index++] = (uint8_t)((data[0] >> 2) & 0xFF);
-        RowBytes[index++] = (uint8_t)((data[0] & 0x03) << 6) | ((data[1] >> 4) & 0x3F);
-        RowBytes[index++] = (uint8_t)((data[1] & 0x0F) << 4) | ((data[2] >> 6) & 0x0F);
-        RowBytes[index++] = (uint8_t)((data[2] & 0x3F) << 2) | ((data[3] >> 8) & 0x03);
-        RowBytes[index++] = (uint8_t)(data[3] & 0xFF);
+            if (pIdx + 3 >= MLX90642_TOTAL_NUMBER_OF_PIXELS) {
+                data[0] = data[1] = data[2] = data[3] = 0;
+            } else {
+                data[0] = (uint16_t)(currentPixels[pIdx + 0] / 5);
+                data[1] = (uint16_t)(currentPixels[pIdx + 1] / 5);
+                data[2] = (uint16_t)(currentPixels[pIdx + 2] / 5);
+                data[3] = (uint16_t)(currentPixels[pIdx + 3] / 5);
+            }
+
+            packet.data[index++] = (uint8_t)((data[0] >> 2) & 0xFF);
+            packet.data[index++] = (uint8_t)(((data[0] & 0x03) << 6) | ((data[1] >> 4) & 0x3F));
+            packet.data[index++] = (uint8_t)(((data[1] & 0x0F) << 4) | ((data[2] >> 6) & 0x0F));
+            packet.data[index++] = (uint8_t)(((data[2] & 0x3F) << 2) | ((data[3] >> 8) & 0x03));
+            packet.data[index++] = (uint8_t)(data[3] & 0xFF);
+        }
     }
 
-    memcpy(packet.data, RowBytes, 40);
     packet.crc = calculateCRC08((uint8_t*)&packet, sizeof(packet) - 1);
     return packet;
 }
