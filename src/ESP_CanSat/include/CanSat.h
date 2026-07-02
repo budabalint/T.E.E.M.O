@@ -11,6 +11,7 @@
 #include <LoRa_E220.h>
 #include <Ina_Sensor.h>
 #include <4Kcam.h>
+#include "SX1280.h"
 
 class CanSat {
 public:
@@ -25,6 +26,7 @@ public:
     INA_Sensor _ina3v3;
     INA_Sensor _ina12v;
     Maincam _camera;
+    VideoRadio _videoRadio;
 
 
     CanSat();
@@ -42,6 +44,8 @@ public:
     void bus_init(int spi_speed, int i2c_speed, int serial_speed);
     void I2CScan();
     void CameraBegin();
+    void VideoRadio();
+    void streamVideo(const char* path, Stream &out);
     
     bool bme_ok = false;
     bool bno_ok = false;
@@ -50,6 +54,7 @@ public:
     bool gps_ok = false;
     bool ina3v3_ok = false;
     bool ina12v_ok = false;
+    bool rf24_ok = false;
 
     void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
 

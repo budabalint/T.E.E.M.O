@@ -7,6 +7,7 @@
 #include <SGP41.h>
 #include <Create_Packet.h>
 #include <config.h>
+#include "SX1280.h"
 
 
 
@@ -23,7 +24,8 @@ CanSat::CanSat():
     _433radio(RADIO_TX, RADIO_RX, &Serial2, RADIO_AUX, RADIO_433MHZ_M0, RADIO_433MHZ_M1, UART_BPS_RATE_9600),
     _ina3v3(0x4F),
     _ina12v(0x4A),
-    _camera()
+    _camera(),
+    _videoRadio(SX1280_NSS, SX1280_DIO1, SX1280_NRST, SX1280_BUSY)
 {
     
 };
@@ -41,7 +43,7 @@ void CanSat::begin() {
     InaBegin();
     //CameraBegin();
     LoraRadioSetconfig();
-    //RF24RadioSetconfig();
+    RF24RadioSetconfig();
 }
 
 void CanSat::InaBegin() {
@@ -185,11 +187,6 @@ void CanSat::LoraRadioSetconfig() {
     Serial2.begin(115200);
 }
 
-void CanSat::RF24RadioSetconfig() {
-
-}
-
-
 void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size) {
     ResponseStatus rs = _433radio.sendFixedMessage(addh, addl, chan, msg, size);
     /*    if (rs.code != E220_SUCCESS) {
@@ -202,7 +199,7 @@ void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *
 
 void CanSat::SetPinModes() {
     pinMode(BNO_CS, OUTPUT);
-    pinMode(RADIO_24GHZ_CS, OUTPUT);
+    pinMode(SX1280_NRST, OUTPUT);
     pinMode(SD_CARD_CS, OUTPUT);
     digitalWrite(SD_CARD_CS, HIGH);
     pinMode(CAM_CS, OUTPUT);
@@ -213,10 +210,31 @@ void CanSat::SetPinModes() {
     //pinMode(RADIO_24GHZ_INT, INPUT);
 
     pinMode(CAM_RST, OUTPUT);
-    pinMode(RADIO_24GHZ_EN, OUTPUT);
+    pinMode(SX1280_NRST, OUTPUT);
     pinMode(BNO_RST, OUTPUT);
 }
 
+void CanSat::RF24RadioSetconfig() {
+    Serial.println("SX1280 (2.4GHz) inicializalas a kozos SPI buszon...");
+    
+    // A bus_init már elindította az SPI-t, csak a rádiót élesztjük
+    if (_videoRadio.begin()) {
+        Serial.println("SX1280 sikeresen elindult!");
+        rf24_ok = true;
+    } else {
+        Serial.println("Hiba: SX1280 nem talalhato / hibas init!");
+        rf24_ok = false;
+    }
+}
+
+// 4. Wrapper metódus a videó streameléshez
+void CanSat::streamVideo(const char* path, Stream &out) {
+    if (rf24_ok) {
+        _videoRadio.streamMjpegFromFS(path, out);
+    } else {
+        Serial.println("SX1280 hiba: video nem kuldheto!");
+    }
+}
 
 void CanSat::I2CScan() {
     byte error, address;

@@ -143,7 +143,27 @@ void ReadI2CSensors(void *pvParameters) {
     }
 }
 
+
+void TaskVideoSender(void *pvParameters) {
+    // Várjunk egy kicsit az indulással, amíg a többi szenzor felébred
+    vTaskDelay(pdMS_TO_TICKS(3000));
+    
+    while(1) {
+        // Streamelés elindítása (Ez a függvény blokkoló, végigmegy a fájlon)
+        canSat.streamVideo("/stream.mjpeg", Serial);
+        
+        // Küldés után várakozzunk pl 5 másodpercet, majd indítsa újra a streamet,
+        // (Vagy tedd vTaskDelete(NULL)-ra, ha csak egyszer akarod leküldeni)
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
 void setup() {
+    if (!LittleFS.begin(false)) {
+        Serial.println("Hiba: LittleFS mount failed!");
+    } else {
+        Serial.println("LittleFS mount OK.");
+    }
     dataMutex = xSemaphoreCreateMutex();
     spiMutex = xSemaphoreCreateMutex();
     
@@ -158,6 +178,7 @@ void setup() {
     delay(100);
 
     //xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
     xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
