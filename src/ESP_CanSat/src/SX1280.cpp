@@ -24,7 +24,7 @@ VideoRadio::~VideoRadio() {
 
 bool VideoRadio::begin() {
     
-    int state = _radio->beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
+    int state = _radio->beginFLRC(2440, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
     if (state != RADIOLIB_ERR_NONE) {
         return false;
     }
@@ -75,7 +75,7 @@ void VideoRadio::sendPacket(Stream &out, const uint8_t *payload, int activeMaskI
     memcpy(&packet[5], payload, VIDEO_PAYLOAD_SIZE);
     packet[VIDEO_PACKET_SIZE - 1] = calcCrc8(packet, VIDEO_PACKET_SIZE - 1);
 
-    out.write(packet, VIDEO_PACKET_SIZE);
+    //out.write(packet, VIDEO_PACKET_SIZE);
 
     // BIZTONSÁGOS SPI HASZNÁLAT (Védelem az SD kártya írástól)
     if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
@@ -109,7 +109,7 @@ void VideoRadio::sendFecPacket(Stream &out) {
     memcpy(&packet[5], fecPayload, VIDEO_PAYLOAD_SIZE);
     packet[VIDEO_PACKET_SIZE - 1] = calcCrc8(packet, VIDEO_PACKET_SIZE - 1);
 
-    out.write(packet, VIDEO_PACKET_SIZE);
+    // out.write(packet, VIDEO_PACKET_SIZE);
 
     // BIZTONSÁGOS SPI HASZNÁLAT
     if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
@@ -141,6 +141,7 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
     uint8_t payloadBuffer[VIDEO_PAYLOAD_SIZE];
     int payloadIdx = 0, activeMaskIdx = -1;
     size_t idx = 0;
+    int packetCounter = 0;
     
     while (idx < fileLen) {
         if (idx + 1 < fileLen && data[idx] == 0xFF && data[idx + 1] == 0xD8) {
@@ -166,8 +167,10 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
             payloadIdx = 0;
             activeMaskIdx = -1;
         }
-        
-        if (idx % 8192 == 0) vTaskDelay(pdMS_TO_TICKS(2));
+        packetCounter++;
+        if (packetCounter % 10 == 0) { // Minden 10. elküldött csomag után
+            vTaskDelay(pdMS_TO_TICKS(1)); // 1ms pihenő, hogy a Watchdog nullázódjon
+        }
     }
 
     if (payloadIdx > 0) {

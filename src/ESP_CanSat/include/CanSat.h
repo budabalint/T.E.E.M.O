@@ -44,7 +44,6 @@ public:
     void bus_init(int spi_speed, int i2c_speed, int serial_speed);
     void I2CScan();
     void CameraBegin();
-    void VideoRadio();
     void streamVideo(const char* path, Stream &out);
     
     bool bme_ok = false;
