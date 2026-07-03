@@ -41,3 +41,5 @@ const uint8_t SX1280_DIO1 =  16;
 const uint8_t SX1280_NRST =  40;
 const uint8_t SX1280_BUSY =  9;
 
+const uint8_t CAM_POWER_PIN  =  6;
+

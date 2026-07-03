@@ -158,6 +158,9 @@ void TaskVideoSender(void *pvParameters) {
     }
 }
 
+
+void TaskFlightController(void *pvParameters);
+
 void setup() {
     if (!LittleFS.begin(false)) {
         Serial.println("Hiba: LittleFS mount failed!");
@@ -178,6 +181,7 @@ void setup() {
     delay(100);
 
     //xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(TaskFlightController, "FlightControl", 4096, NULL, 2, NULL, 1);
     xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);

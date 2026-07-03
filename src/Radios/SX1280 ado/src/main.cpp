@@ -43,22 +43,23 @@ static const uint16_t SEQ_MAX      = 251;
 
 // ---------- Kimeneti port ----------
 #define DATA_SERIAL   Serial
-#define DATA_BAUD     115200
+#define DATA_BAUD     921600
 
 // ---------- CRC8-CCITT (poly 0x07) ----------
 static uint8_t calcCrc8(const uint8_t *data, size_t len) {
   uint8_t crc = 0x00;
-  for (size_t i = 0; i < len; i++) {
-    crc ^= data[i];
-    for (uint8_t b = 0; b < 8; b++) {
-      if (crc & 0x80) {
-        crc = (uint8_t)((crc << 1) ^ 0x07);
-      } else {
-        crc = (uint8_t)(crc << 1);
-      }
+    while (len--) {
+        uint8_t extract = *data++;
+        for (uint8_t tempI = 8; tempI; tempI--) {
+            uint8_t sum = (crc ^ extract) & 0x01;
+            crc >>= 1;
+            if (sum) {
+                crc ^= 0x8C;
+            }
+            extract >>= 1;
+        }
     }
-  }
-  return crc;
+    return crc;
 }
 
 // ---------- Adó állapotgép ----------
@@ -145,14 +146,14 @@ Transmitter tx;
 
 // ---------- SX1280 Inicializálás ----------
 void setupRadio() {
-  int state = radio.beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
+  int state = radio.beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5); // -18
   if (state != RADIOLIB_ERR_NONE) {
     Serial.print("[Hiba] Rádió indulási hibakód: ");
     Serial.println(state);
     while (1);
   }
 
-  radio.setOutputPower(-18);
+  radio.setOutputPower(0);
 
   uint8_t syncWord[] = { 0xC1, 0xA2, 0xB3, 0xD4 };
   radio.setSyncWord(syncWord, 4);

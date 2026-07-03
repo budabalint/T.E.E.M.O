@@ -35,17 +35,18 @@ int8_t lastRssi = 0;              // cache-elt utolsó RSSI érték
 
 uint8_t calcCrc8(const uint8_t *data, size_t len) {
   uint8_t crc = 0x00;
-  for (size_t i = 0; i < len; i++) {
-    crc ^= data[i];
-    for (uint8_t b = 0; b < 8; b++) {
-      if (crc & 0x80) {
-        crc = (uint8_t)((crc << 1) ^ 0x07);
-      } else {
-        crc = (uint8_t)(crc << 1);
-      }
+    while (len--) {
+        uint8_t extract = *data++;
+        for (uint8_t tempI = 8; tempI; tempI--) {
+            uint8_t sum = (crc ^ extract) & 0x01;
+            crc >>= 1;
+            if (sum) {
+                crc ^= 0x8C;
+            }
+            extract >>= 1;
+        }
     }
-  }
-  return crc;
+    return crc;
 }
 
 #if defined(ESP8266) || defined(ESP32)
@@ -56,7 +57,7 @@ void setFlag(void) {
 }
 
 void setupRadio() {
-  int state = radio.beginFLRC(2486.0, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
+  int state = radio.beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
   if (state != RADIOLIB_ERR_NONE) {
     while (1); 
   }
@@ -73,7 +74,7 @@ void setupRadio() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(921600);
   delay(100);
 
   customSPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, -1);
@@ -113,7 +114,7 @@ void loop() {
 
       uint8_t outBuffer[SERIAL_LEN];
       memcpy(outBuffer, videoPacket, PACKET_LEN);
-      outBuffer[PACKET_LEN] = rssiByte;
+      outBuffer[PACKET_LEN] = (255-rssiByte);
 
       Serial.write(outBuffer, SERIAL_LEN);
     }
