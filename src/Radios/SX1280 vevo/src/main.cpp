@@ -7,13 +7,13 @@
 #include <RadioLib.h>
 #include <SPI.h>
 
-#define SPI_SCK       18
-#define SPI_MOSI      17
-#define SPI_MISO      7
-#define SX1280_NSS    15
-#define SX1280_DIO1   8
-#define SX1280_NRST   16
-#define SX1280_BUSY   6
+#define SPI_SCK       12
+#define SPI_MOSI      11
+#define SPI_MISO      9
+#define SX1280_NSS    14
+#define SX1280_DIO1   20
+#define SX1280_NRST   40
+#define SX1280_BUSY   13
 
 SPIClass customSPI(FSPI);
 Module* module = new Module(SX1280_NSS, SX1280_DIO1, SX1280_NRST, SX1280_BUSY, customSPI);
@@ -57,10 +57,17 @@ void setFlag(void) {
 }
 
 void setupRadio() {
+  Serial.println("--- SX1280 Inicializalasa folyamatban... ---");
+  
   int state = radio.beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
+  
   if (state != RADIOLIB_ERR_NONE) {
-    while (1); 
+    Serial.print("Hiba az inicializalas soran! Hibakod: ");
+    Serial.println(state);
+    while (1); // Itt megáll a program, ha hiba van
   }
+  
+  Serial.println("--- SX1280 Sikeresen inicializalva! Varas az adatokra... ---");
 
   uint8_t syncWord[] = { 0xC1, 0xA2, 0xB3, 0xD4 };
   radio.setSyncWord(syncWord, 4);
@@ -72,7 +79,6 @@ void setupRadio() {
 
   radio.startReceive();
 }
-
 void setup() {
   Serial.begin(921600);
   delay(100);

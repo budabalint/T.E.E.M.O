@@ -13,6 +13,7 @@
 
 #define SPI_FREQ SD_SCK_MHZ(8)
 extern SemaphoreHandle_t dataMutex; 
+extern SemaphoreHandle_t spiMutex; 
 CanSat::CanSat():
     _bno(),
     _bme(),
@@ -25,7 +26,7 @@ CanSat::CanSat():
     _ina3v3(0x4F),
     _ina12v(0x4A),
     _camera(),
-    _videoRadio(SX1280_NSS, SX1280_DIO1, SX1280_NRST, SX1280_BUSY)
+    _videoRadio(SX1280_NSS, SX1280_DIO1, SX1280_NRST, SX1280_BUSY, &SPI)
 {
     
 };

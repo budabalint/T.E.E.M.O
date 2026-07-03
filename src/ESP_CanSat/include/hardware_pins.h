@@ -37,9 +37,9 @@ const uint8_t RADIO_AUX = 10; //10
 
 
 const uint8_t SX1280_NSS  =  14;
-const uint8_t SX1280_DIO1 =  16;
+const uint8_t SX1280_DIO1 =  6;
 const uint8_t SX1280_NRST =  40;
 const uint8_t SX1280_BUSY =  9;
 
-const uint8_t CAM_POWER_PIN  =  6;
+const uint8_t CAM_POWER_PIN  =  16;
 

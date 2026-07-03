@@ -14,7 +14,7 @@
 
 class VideoRadio {
 public:
-    VideoRadio(uint8_t nss, uint8_t dio1, uint8_t nrst, uint8_t busy);
+    VideoRadio(uint8_t nss, uint8_t dio1, uint8_t nrst, uint8_t busy, SPIClass* spiObj = nullptr);
     ~VideoRadio();
 
     bool begin(); // Nem kellenek ide pinek, a már futó SPI-t használja

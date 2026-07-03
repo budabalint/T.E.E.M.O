@@ -6,7 +6,8 @@
 #include <config.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
-#include <freertos/stream_buffer.h> // <-- EZ ÚJ
+#include <freertos/stream_buffer.h>
+#include "esp_task_wdt.h"
 
 CanSat canSat;
 Packet packet;
@@ -150,9 +151,9 @@ void TaskVideoSender(void *pvParameters) {
     
     while(1) {
         // Streamelés elindítása (Ez a függvény blokkoló, végigmegy a fájlon)
-        canSat.streamVideo("/stream.mjpeg", Serial);
-        
-        // Küldés után várakozzunk pl 5 másodpercet, majd indítsa újra a streamet,
+        canSat.streamVideo("/stream.mjpeg", Serial); // Győződj meg róla, hogy ez hívja a streamMjpegFromFS-t
+        esp_task_wdt_reset(); 
+        // Küldés után várakozzunk pl 50 milliszekundumot, majd indítsa újra a streamet,
         // (Vagy tedd vTaskDelete(NULL)-ra, ha csak egyszer akarod leküldeni)
         vTaskDelay(pdMS_TO_TICKS(50));
     }
@@ -185,7 +186,7 @@ void setup() {
     xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
-    xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
+    //xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
     //xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 

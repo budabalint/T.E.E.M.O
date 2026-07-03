@@ -1,13 +1,22 @@
 #include "SX1280.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
+#include "esp_task_wdt.h"
+#include <SPI.h>
+#include <LittleFS.h>
+#include <esp_heap_caps.h>
 
 extern SemaphoreHandle_t spiMutex;
 
-VideoRadio::VideoRadio(uint8_t nss, uint8_t dio1, uint8_t nrst, uint8_t busy) 
+VideoRadio::VideoRadio(uint8_t nss, uint8_t dio1, uint8_t nrst, uint8_t busy, SPIClass* spiObj) 
     : _nss(nss), _dio1(dio1), _nrst(nrst), _busy(busy) 
 {
-    _module = new Module(nss, dio1, nrst, busy);
+    if (spiObj != nullptr) {
+        _module = new Module(nss, dio1, nrst, busy, *spiObj);
+    } else {
+        _module = new Module(nss, dio1, nrst, busy);
+    }
+    
     _radio = new SX1280(_module);
     
     seq = 0;
@@ -23,32 +32,36 @@ VideoRadio::~VideoRadio() {
 }
 
 bool VideoRadio::begin() {
-    
-    int state = _radio->beginFLRC(2440, 1300, 2, -18, 16, RADIOLIB_SHAPING_0_5);
-    if (state != RADIOLIB_ERR_NONE) {
-        return false;
-    }
+    if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
+        int state = _radio->beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
+        if (state != RADIOLIB_ERR_NONE) {
+            Serial.printf("[RÁDIÓ] Hiba az inicializáláskor! Kód: %d\n", state);
+            xSemaphoreGive(spiMutex);
+            return false;
+        }
 
-    _radio->setOutputPower(-18);
-    uint8_t syncWord[] = { 0xC1, 0xA2, 0xB3, 0xD4 };
-    _radio->setSyncWord(syncWord, 4);
-    _radio->setCRC(2);
-    _radio->fixedPacketLengthMode(VIDEO_PACKET_SIZE);
-    _radio->setHighSensitivityMode(true);
-    
-    return true;
+        _radio->setOutputPower(0); 
+        uint8_t syncWord[] = { 0xC1, 0xA2, 0xB3, 0xD4 };
+        _radio->setSyncWord(syncWord, 4);
+        _radio->setCRC(2);
+        _radio->fixedPacketLengthMode(VIDEO_PACKET_SIZE); 
+        _radio->setHighSensitivityMode(true);
+        
+        xSemaphoreGive(spiMutex);
+        return true;
+    }
+    return false; 
 }
 
 uint8_t VideoRadio::calcCrc8(const uint8_t *data, size_t len) {
     uint8_t crc = 0x00;
-    for (size_t i = 0; i < len; i++) {
-        crc ^= data[i];
-        for (uint8_t b = 0; b < 8; b++) {
-            if (crc & 0x80) {
-                crc = (uint8_t)((crc << 1) ^ 0x07);
-            } else {
-                crc = (uint8_t)(crc << 1);
-            }
+    while (len--) {
+        uint8_t extract = *data++;
+        for (uint8_t tempI = 8; tempI; tempI--) {
+            uint8_t sum = (crc ^ extract) & 0x01;
+            crc >>= 1;
+            if (sum) crc ^= 0x8C;
+            extract >>= 1;
         }
     }
     return crc;
@@ -67,7 +80,7 @@ void VideoRadio::sendPacket(Stream &out, const uint8_t *payload, int activeMaskI
 
     uint8_t currentFrameId = (uint8_t)((frameId < 0 ? 0 : frameId) % 256);
     uint8_t packet[VIDEO_PACKET_SIZE];
-    packet[0] = VIDEO_SYNC_BYTE;
+    packet[0] = VIDEO_SYNC_BYTE; 
     packet[1] = VIDEO_TYPE_MJPEG;
     packet[2] = (uint8_t)seq;
     packet[3] = currentFrameId;
@@ -75,11 +88,20 @@ void VideoRadio::sendPacket(Stream &out, const uint8_t *payload, int activeMaskI
     memcpy(&packet[5], payload, VIDEO_PAYLOAD_SIZE);
     packet[VIDEO_PACKET_SIZE - 1] = calcCrc8(packet, VIDEO_PACKET_SIZE - 1);
 
-    //out.write(packet, VIDEO_PACKET_SIZE);
+    static int pktCount = 0;
+    pktCount++;
+    
+    // Csak az első párnál, illetve ritkábban logolunk, hogy ne árasszuk el a Serialt
+    if (pktCount < 5 || pktCount % 500 == 0) {
+        Serial.printf("  [MJPEG Küldés] pktCount=%d, SPI kikérése...\n", pktCount);
+    }
 
-    // BIZTONSÁGOS SPI HASZNÁLAT (Védelem az SD kártya írástól)
     if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-        _radio->transmit(packet, VIDEO_PACKET_SIZE);
+        if (pktCount < 5 || pktCount % 500 == 0) Serial.println("  [MJPEG Küldés] transmit() hívása...");
+        
+        int state = _radio->transmit(packet, VIDEO_PACKET_SIZE);
+        
+        if (pktCount < 5 || pktCount % 500 == 0) Serial.printf("  [MJPEG Küldés] transmit() vége, state=%d\n", state);
         xSemaphoreGive(spiMutex);
     }
 
@@ -109,9 +131,6 @@ void VideoRadio::sendFecPacket(Stream &out) {
     memcpy(&packet[5], fecPayload, VIDEO_PAYLOAD_SIZE);
     packet[VIDEO_PACKET_SIZE - 1] = calcCrc8(packet, VIDEO_PACKET_SIZE - 1);
 
-    // out.write(packet, VIDEO_PACKET_SIZE);
-
-    // BIZTONSÁGOS SPI HASZNÁLAT
     if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
         _radio->transmit(packet, VIDEO_PACKET_SIZE);
         xSemaphoreGive(spiMutex);
@@ -122,21 +141,53 @@ void VideoRadio::sendFecPacket(Stream &out) {
 }
 
 void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
+    Serial.println("\n[VIDEO_STREAM] ---- START ----");
+    
+    Serial.printf("[VIDEO_STREAM] Fájl keresése: %s\n", path);
     File f = LittleFS.open(path, "r");
-    if (!f) return;
+    if (!f) {
+        Serial.println("[VIDEO_STREAM] HIBA: Fájl nem található vagy nem nyitható meg!");
+        return;
+    }
 
     size_t fileLen = f.size();
-    uint8_t *data = (uint8_t *)heap_caps_malloc(fileLen, MALLOC_CAP_SPIRAM);
+    Serial.printf("[VIDEO_STREAM] Fájlméret: %d byte\n", fileLen);
     
-    if (!data) {
+    if (fileLen == 0) {
+        Serial.println("[VIDEO_STREAM] HIBA: Üres fájl!");
         f.close();
         return;
     }
 
-    size_t readLen = f.read(data, fileLen);
+    Serial.println("[VIDEO_STREAM] PSRAM foglalás...");
+    uint8_t *data = (uint8_t *)heap_caps_malloc(fileLen, MALLOC_CAP_SPIRAM);
+    
+    if (!data) {
+        Serial.println("[VIDEO_STREAM] HIBA: Nincs elég PSRAM!");
+        f.close();
+        return;
+    }
+    Serial.println("[VIDEO_STREAM] PSRAM lefoglalva. Fájl olvasása darabokban...");
+
+    size_t bytesRead = 0;
+    const size_t chunkSize = 16384; 
+    
+    while (bytesRead < fileLen) {
+        size_t toRead = fileLen - bytesRead;
+        if (toRead > chunkSize) toRead = chunkSize;
+        
+        size_t res = f.read(data + bytesRead, toRead);
+        if (res == 0) break; 
+        bytesRead += res;
+        
+        esp_task_wdt_reset(); 
+        vTaskDelay(pdMS_TO_TICKS(5)); // Kicsit megnövelt szünet
+    }
     f.close();
+    Serial.printf("[VIDEO_STREAM] Fájl beolvasva: %d byte.\n", bytesRead);
 
     vTaskDelay(pdMS_TO_TICKS(500));
+    Serial.println("[VIDEO_STREAM] Kezdődik a parseolás és küldés...");
 
     uint8_t payloadBuffer[VIDEO_PAYLOAD_SIZE];
     int payloadIdx = 0, activeMaskIdx = -1;
@@ -144,6 +195,12 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
     int packetCounter = 0;
     
     while (idx < fileLen) {
+        // Biztonsági WDT reset minden 1000 iterációnál
+        if (idx % 1000 == 0) {
+            esp_task_wdt_reset();
+            vTaskDelay(1);
+        }
+
         if (idx + 1 < fileLen && data[idx] == 0xFF && data[idx + 1] == 0xD8) {
             frameId++;
             activeMaskIdx = payloadIdx;
@@ -166,10 +223,12 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
             sendPacket(out, payloadBuffer, activeMaskIdx);
             payloadIdx = 0;
             activeMaskIdx = -1;
-        }
-        packetCounter++;
-        if (packetCounter % 10 == 0) { // Minden 10. elküldött csomag után
-            vTaskDelay(pdMS_TO_TICKS(1)); // 1ms pihenő, hogy a Watchdog nullázódjon
+
+            packetCounter++;
+            if (packetCounter % 4 == 0) {   
+                esp_task_wdt_reset(); 
+                vTaskDelay(pdMS_TO_TICKS(2)); 
+            }
         }
     }
 
@@ -179,4 +238,5 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
     }
 
     heap_caps_free(data);
+    Serial.println("[VIDEO_STREAM] ---- STREAM KÉSZ ----");
 }
