@@ -203,6 +203,13 @@ void CanSat::sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *
     }*/
 }
 
+
+void CanSat::sendRawDataSX1280(const uint8_t* data, size_t length) {
+    if (rf24_ok) {
+        _videoRadio.transmitRawPadded(data, length);
+    }
+}
+
 void CanSat::SetPinModes() {
     pinMode(BNO_CS, OUTPUT);
     pinMode(SX1280_NRST, OUTPUT);
@@ -234,9 +241,10 @@ void CanSat::RF24RadioSetconfig() {
 }
 
 // 4. Wrapper metódus a videó streameléshez
-void CanSat::streamVideo(const char* path, Stream &out) {
+// (Így néz ki kijavítva)
+void CanSat::streamVideo(const char* path, Stream &out, void (*idleCb)()) {
     if (rf24_ok) {
-        _videoRadio.streamMjpegFromFS(path, out);
+        _videoRadio.streamMjpegFromFS(path, out, idleCb);
     } else {
         Serial.println("SX1280 hiba: video nem kuldheto!");
     }

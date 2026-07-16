@@ -16,7 +16,8 @@ ThermalCam cam;
 SemaphoreHandle_t dataMutex;
 SemaphoreHandle_t spiMutex;
 StreamBufferHandle_t sdStreamBuffer;
-
+const int THERMAL_QUEUE_LENGTH = 16;
+QueueHandle_t thermalRadioQueue;
 volatile int writeIndex = 0;
 int readPhase = 0; 
 
@@ -123,6 +124,10 @@ void ReadThermalCam(void *pvParameters) {
                 Serial.write((uint8_t*)&tp, sizeof(ThermalPacket));
                 Serial.write((uint8_t)0);
                 xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
+        
+                if (thermalRadioQueue != NULL) {
+                    xQueueSend(thermalRadioQueue, &tp, 0); 
+                }
             }
             frameSeq++;
         }
@@ -145,20 +150,26 @@ void ReadI2CSensors(void *pvParameters) {
 }
 
 
-void TaskVideoSender(void *pvParameters) {
-    // Várjunk egy kicsit az indulással, amíg a többi szenzor felébred
-    vTaskDelay(pdMS_TO_TICKS(3000));
-    
-    while(1) {
-        // Streamelés elindítása (Ez a függvény blokkoló, végigmegy a fájlon)
-        canSat.streamVideo("/stream.mjpeg", Serial); // Győződj meg róla, hogy ez hívja a streamMjpegFromFS-t
-        esp_task_wdt_reset(); 
-        // Küldés után várakozzunk pl 50 milliszekundumot, majd indítsa újra a streamet,
-        // (Vagy tedd vTaskDelete(NULL)-ra, ha csak egyszer akarod leküldeni)
-        vTaskDelay(pdMS_TO_TICKS(50));
+void checkThermalQueue() {
+    if (thermalRadioQueue != NULL) {
+        ThermalPacket tp;
+        // Kiszürjük az összes felgyűlt hőkamera csomagot
+        while (xQueueReceive(thermalRadioQueue, &tp, 0) == pdTRUE) {
+            canSat.sendRawDataSX1280((uint8_t*)&tp, sizeof(ThermalPacket));
+            vTaskDelay(pdMS_TO_TICKS(1)); 
+        }
     }
 }
 
+void TaskVideoSender(void *pvParameters) {
+    vTaskDelay(pdMS_TO_TICKS(3000));
+    
+    while(1) {
+        canSat.streamVideo("/stream.mjpeg", Serial, checkThermalQueue); 
+        esp_task_wdt_reset(); 
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
 
 void TaskFlightController(void *pvParameters);
 
@@ -173,6 +184,10 @@ void setup() {
     
     sdStreamBuffer = xStreamBufferCreate(32768, 1); 
 
+    thermalRadioQueue = xQueueCreate(THERMAL_QUEUE_LENGTH, sizeof(ThermalPacket));
+    if (thermalRadioQueue == NULL) {
+        Serial.println("Kritikus Hiba: thermalRadioQueue letrehozasa sikertelen!");
+    }
     //digitalWrite(CAM_CS, LOW);
     //digitalWrite(BNO_RST, HIGH);0
     delay(1000);
@@ -187,9 +202,10 @@ void setup() {
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
     //xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
-    //xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 
 void loop() {
     vTaskDelete(NULL);
 }
+

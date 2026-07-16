@@ -56,7 +56,8 @@ public:
     bool rf24_ok = false;
 
     void sendRadioMsg(uint8_t addh, uint8_t addl, uint8_t chan, const void *msg, const uint8_t size);
-
+    void streamVideo(const char* path, Stream &out, void (*idleCb)() = nullptr);
+    void sendRawDataSX1280(const uint8_t* data, size_t length);
 
 private:
 };

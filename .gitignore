@@ -1,0 +1,4 @@
+# Python cache fájlok ignorálása
+__pycache__/
+*.py[cod]
+*$py.class

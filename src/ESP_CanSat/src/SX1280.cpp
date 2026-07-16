@@ -140,7 +140,7 @@ void VideoRadio::sendFecPacket(Stream &out) {
     fecCount = 0;
 }
 
-void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
+void VideoRadio::streamMjpegFromFS(const char *path, Stream &out, StreamIdleCallback idleCb) {
     Serial.println("\n[VIDEO_STREAM] ---- START ----");
     
     Serial.printf("[VIDEO_STREAM] Fájl keresése: %s\n", path);
@@ -229,6 +229,9 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
                 esp_task_wdt_reset(); 
                 vTaskDelay(pdMS_TO_TICKS(2)); 
             }
+            if (idleCb != nullptr) {
+                idleCb();
+            }
         }
     }
 
@@ -239,4 +242,16 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out) {
 
     heap_caps_free(data);
     Serial.println("[VIDEO_STREAM] ---- STREAM KÉSZ ----");
+}
+
+
+void VideoRadio::transmitRawPadded(const uint8_t* data, size_t len) {
+    uint8_t packet[VIDEO_PACKET_SIZE] = {0}; // Alapból feltöltjük nullákkal
+    size_t copyLen = (len < VIDEO_PACKET_SIZE) ? len : VIDEO_PACKET_SIZE;
+    memcpy(packet, data, copyLen);
+    
+    if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
+        _radio->transmit(packet, VIDEO_PACKET_SIZE);
+        xSemaphoreGive(spiMutex);
+    }
 }

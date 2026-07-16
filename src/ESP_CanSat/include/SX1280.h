@@ -11,14 +11,15 @@
 #define VIDEO_TYPE_MJPEG   0xDD
 #define VIDEO_TYPE_FEC     0xFF
 #define VIDEO_SEQ_MAX      251
-
+typedef void (*StreamIdleCallback)();
 class VideoRadio {
 public:
     VideoRadio(uint8_t nss, uint8_t dio1, uint8_t nrst, uint8_t busy, SPIClass* spiObj = nullptr);
     ~VideoRadio();
 
     bool begin(); // Nem kellenek ide pinek, a már futó SPI-t használja
-    void streamMjpegFromFS(const char *path, Stream &out);
+    void streamMjpegFromFS(const char *path, Stream &out, StreamIdleCallback idleCb = nullptr);
+    void transmitRawPadded(const uint8_t* data, size_t len);
 
 private:
     uint8_t _nss, _dio1, _nrst, _busy;
