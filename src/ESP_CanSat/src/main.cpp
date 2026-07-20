@@ -121,9 +121,9 @@ void ReadThermalCam(void *pvParameters) {
             cam.swapBuffersIfNew();
             for (uint8_t group = 0; group < 8; group++) {
                 ThermalPacket tp = cam.getPacketFromBuffer(group, frameSeq);
-                Serial.write((uint8_t*)&tp, sizeof(ThermalPacket));
-                Serial.write((uint8_t)0);
-                xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
+                //Serial.write((uint8_t*)&tp, sizeof(ThermalPacket));
+                //Serial.write((uint8_t)0);
+                //xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
         
                 if (thermalRadioQueue != NULL) {
                     xQueueSend(thermalRadioQueue, &tp, 0); 
@@ -201,7 +201,7 @@ void setup() {
     xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
-    //xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
+    xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
     xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 
