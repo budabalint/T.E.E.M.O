@@ -6,7 +6,7 @@
 class INA_Sensor {
 public:
     INA_Sensor(uint8_t address); // Alapértelmezett I2C cím: 0x40
-    bool begin();
+    bool begin(float current, float resistor);
     bool measure();
     
     float GetVoltage();

@@ -8,14 +8,14 @@ INA_Sensor::INA_Sensor(uint8_t address) : _ina(address) {
     _shuntVoltage = 0.0;
 }
 
-bool INA_Sensor::begin() {
+bool INA_Sensor::begin(float current, float resistor) {
     Wire.begin();
     
     if (!_ina.begin()) {
         return false;
     }
 
-    _ina.setMaxCurrentShunt(0.5, 0.082);
+    _ina.setMaxCurrentShunt(current, resistor);
 
     return true;
 }

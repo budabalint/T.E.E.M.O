@@ -124,14 +124,13 @@ void ReadThermalCam(void *pvParameters) {
                 Serial.write((uint8_t*)&tp, sizeof(ThermalPacket));
                 Serial.write((uint8_t)0);
                 xStreamBufferSend(sdStreamBuffer, &tp, sizeof(ThermalPacket), 0);
-        
                 if (thermalRadioQueue != NULL) {
                     xQueueSend(thermalRadioQueue, &tp, 0); 
                 }
             }
             frameSeq++;
-        }
-        vTaskDelay(pdMS_TO_TICKS(20));
+        }1
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
 
@@ -156,7 +155,7 @@ void checkThermalQueue() {
         // Kiszürjük az összes felgyűlt hőkamera csomagot
         while (xQueueReceive(thermalRadioQueue, &tp, 0) == pdTRUE) {
             canSat.sendRawDataSX1280((uint8_t*)&tp, sizeof(ThermalPacket));
-            vTaskDelay(pdMS_TO_TICKS(1)); 
+            vTaskDelay(pdMS_TO_TICKS(3)); 
         }
     }
 }
@@ -197,11 +196,11 @@ void setup() {
     delay(100);
 
     //xTaskCreatePinnedToCore(SPICommunication, "SPI_BNO",        4096, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(TaskFlightController, "FlightControl", 4096, NULL, 2, NULL, 1);
-    xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 1, NULL, 0);
+    //xTaskCreatePinnedToCore(TaskFlightController, "FlightControl", 4096, NULL, 2, NULL, 1);
+    xTaskCreatePinnedToCore(TaskVideoSender, "VideoSender", 10240, NULL, 3, NULL, 0);
     xTaskCreatePinnedToCore(ReadI2CSensors,   "I2C_Sensors",    4096, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskRadioSender,  "RadioSender",    4096, NULL, 2, NULL, 0);
-    //xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
+    xTaskCreatePinnedToCore(TaskSDWriter,     "SD_Writer",      4096, NULL, 1, NULL, 0); 
     xTaskCreatePinnedToCore(ReadThermalCam, "ThermalReader", 10240, NULL, 1, NULL, 1);
 }
 

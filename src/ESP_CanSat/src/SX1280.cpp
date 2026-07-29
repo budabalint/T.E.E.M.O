@@ -181,7 +181,7 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out, StreamIdleCall
         bytesRead += res;
         
         esp_task_wdt_reset(); 
-        vTaskDelay(pdMS_TO_TICKS(5)); // Kicsit megnövelt szünet
+        vTaskDelay(pdMS_TO_TICKS(2)); // Kicsit megnövelt szünet
     }
     f.close();
     Serial.printf("[VIDEO_STREAM] Fájl beolvasva: %d byte.\n", bytesRead);
@@ -225,9 +225,9 @@ void VideoRadio::streamMjpegFromFS(const char *path, Stream &out, StreamIdleCall
             activeMaskIdx = -1;
 
             packetCounter++;
-            if (packetCounter % 4 == 0) {   
+            if (packetCounter % 50 == 0) {   
                 esp_task_wdt_reset(); 
-                vTaskDelay(pdMS_TO_TICKS(2)); 
+                vTaskDelay(pdMS_TO_TICKS(1)); 
             }
             if (idleCb != nullptr) {
                 idleCb();
