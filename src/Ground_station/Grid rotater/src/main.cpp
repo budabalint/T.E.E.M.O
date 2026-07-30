@@ -142,7 +142,6 @@ void TaskUART(void *pvParameters) {
               
               global_isManual = true;
               tracking_active = true; 
-              target_is_absolute = true; // <--- JAVÍTÁS: A weblapos parancs ABSZOLÚT!
             }
 
             TelemetryPacket txPacket;
@@ -159,7 +158,7 @@ void TaskUART(void *pvParameters) {
             Serial1.flush(); 
 
           } else {
-            Serial.printf("UART Hiba: CRC nem egyezik! Kapott: %02X, Szamolt: %02X\n", receivedCRC, calculatedCRC);
+            Serial.printf("UART Hiba: CRC nem egyezik!\n");
           }
         }
       }
@@ -188,11 +187,8 @@ void TaskSensor(void *pvParameters) {
 
       float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
       
-      // JAVÍTÁS: A szenzor tükrözve van felszerelve a panelen!
-      // Emiatt a 90 és a 270 fok (Kelet és Nyugat) felcserélődött.
-      // Ezzel az egyetlen matematikai képlettel helyrerakjuk az elforgatást és a tükrözést is:
+      // A TÖKÉLETES TÜKRÖZÉS (Hogy a weblapon jó legyen a 90/270 fok)
       raw_yaw = 180.0 - raw_yaw;
-      
       while (raw_yaw < 0.0) raw_yaw += 360.0;
       while (raw_yaw >= 360.0) raw_yaw -= 360.0;
 
@@ -279,12 +275,11 @@ void TaskControl(void *pvParameters) {
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
+        tracking_active = true;
         
         xSemaphoreTake(dataMutex, portMAX_DELAY);
-        tracking_active = true;
         target_yaw = c_yaw;
         target_pitch = c_pitch;
-        target_is_absolute = false; // <--- JAVÍTÁS: Joystickos vezérlés, nem fix cél
         xSemaphoreGive(dataMutex);
 
         yaw_correcting = false;
@@ -393,11 +388,7 @@ void TaskControl(void *pvParameters) {
           float offset_diff = new_offset - dynamic_yaw_offset; 
           dynamic_yaw_offset = new_offset;
 
-          // <--- JAVÍTÁS LÉNYEGE ITT VAN --->
-          // CSAK AKKOR toljuk el a célt (hogy egyhelyben maradjon a gép), ha
-          // a joystickkal engedtük el. Ha Webről jött abszolút fok, akkor HAGYJUK ÉRINTETLENÜL
-          // a target_yaw-t, így a motorok visszakorrigálják a gépet, ha elmászna!
-          if (isManual && !target_is_absolute) {
+          if (isManual) {
             target_yaw += offset_diff;
             while (target_yaw >= 360.0) target_yaw -= 360.0;
             while (target_yaw < 0.0) target_yaw += 360.0;
