@@ -393,6 +393,7 @@ void TaskControl(void *pvParameters) {
             while (target_yaw >= 360.0) target_yaw -= 360.0;
             while (target_yaw < 0.0) target_yaw += 360.0;
           }
+          
         }
         xSemaphoreGive(dataMutex);
       }
