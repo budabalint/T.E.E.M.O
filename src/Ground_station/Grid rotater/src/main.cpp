@@ -195,10 +195,13 @@ void TaskSensor(void *pvParameters) {
 
       float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
       
-      // JAVÍTÁS: Szenzor szoftveres megfordítása 180 fokkal, 
-      // mert fizikailag háttal van felszerelve a gép orrához képest!
-      raw_yaw += 180.0;
-      if (raw_yaw >= 360.0) raw_yaw -= 360.0;
+      // JAVÍTÁS: A szenzor tükrözve van felszerelve a panelen!
+      // Emiatt a 90 és a 270 fok (Kelet és Nyugat) felcserélődött.
+      // Ezzel az egyetlen matematikai képlettel helyrerakjuk az elforgatást és a tükrözést is:
+      raw_yaw = 180.0 - raw_yaw;
+      
+      while (raw_yaw < 0.0) raw_yaw += 360.0;
+      while (raw_yaw >= 360.0) raw_yaw -= 360.0;
 
       float raw_pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) * 180.0 / PI;
 
