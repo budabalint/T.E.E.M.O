@@ -187,10 +187,11 @@ void TaskSensor(void *pvParameters) {
 
       float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
       
-      // A TÖKÉLETES TÜKRÖZÉS (Hogy a weblapon jó legyen a 90/270 fok)
-      raw_yaw = 180.0 - raw_yaw;
-      while (raw_yaw < 0.0) raw_yaw += 360.0;
+      // JAVÍTÁS: Nincs tükrözés, csak egy sima 180 fokos eltolás, 
+      // mert a szenzor háttal van a gép orrának!
+      raw_yaw += 180.0;
       while (raw_yaw >= 360.0) raw_yaw -= 360.0;
+      while (raw_yaw < 0.0) raw_yaw += 360.0;
 
       float raw_pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) * 180.0 / PI;
 
@@ -209,7 +210,6 @@ void TaskSensor(void *pvParameters) {
     vTaskDelay(5 / portTICK_PERIOD_MS);
   }
 }
-
 void TaskControl(void *pvParameters) {
   static unsigned long lastDebugPrint = 0;
   
@@ -416,7 +416,6 @@ void TaskControl(void *pvParameters) {
     vTaskDelay(20 / portTICK_PERIOD_MS);
   }
 }
-
 void setup() {
   Serial.begin(115200);
   delay(100);
