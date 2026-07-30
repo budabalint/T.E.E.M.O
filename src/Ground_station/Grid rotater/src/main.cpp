@@ -185,7 +185,7 @@ void TaskSensor(void *pvParameters) {
       float sqj = qj * qj;
       float sqk = qk * qk;
 
-      float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
+      float raw_yaw = -atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
       
       // JAVÍTÁS: Nincs tükrözés, csak egy sima 180 fokos eltolás, 
       // mert a szenzor háttal van a gép orrának!
@@ -275,8 +275,8 @@ void TaskControl(void *pvParameters) {
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
-        tracking_active = true;
-        
+        tracking_active = false;   // <-- itt volt "true", ezt kell false-ra tenni
+
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         target_yaw = c_yaw;
         target_pitch = c_pitch;
@@ -285,7 +285,7 @@ void TaskControl(void *pvParameters) {
         yaw_correcting = false;
         pitch_correcting = false;
         yaw_dir = 0;
-      } else {
+      }else {
         float yaw_error = target_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
