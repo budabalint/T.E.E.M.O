@@ -172,7 +172,7 @@ void CanSat::LoraRadioSetconfig() {
         configuration.SPED.uartBaudRate = UART_BPS_115200;
         configuration.SPED.uartParity = MODE_00_8N1;
 
-        configuration.OPTION.transmissionPower = POWER_10;
+        configuration.OPTION.transmissionPower = POWER_22;
         configuration.OPTION.subPacketSetting = SPS_200_00;
         configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_ENABLED;
 
