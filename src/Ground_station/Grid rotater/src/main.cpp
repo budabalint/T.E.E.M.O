@@ -407,14 +407,19 @@ void TaskControl(void *pvParameters) {
     digitalWrite(relay2, r2);
     digitalWrite(relay3, r3);
     digitalWrite(relay4, r4);
-
-    if (millis() - lastDebugPrint > 1000) {
+    if (millis() - lastDebugPrint > 400) {
       lastDebugPrint = millis();
-      Serial.printf("[INFO] Mód: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | MOT: %d%d%d%d\n",
+      
+      // Kifejezetten a logoláshoz kiolvassuk az analóg pint (így AUTO módban is látod mit csinál)
+      int current_adc_val = getAveragedADC(ANALOG_BUTTON, 16);
+      
+      // Hozzáadtuk a kiíratáshoz az " | ADC: %d" részt, és a current_adc_val változót
+      Serial.printf("[INFO] Mód: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | MOT: %d%d%d%d | ADC: %d\n",
         isManual ? "MANUAL" : "AUTO",
         c_yaw, target_yaw,
         c_pitch, target_pitch,
-        r1, r2, r3, r4
+        r1, r2, r3, r4,
+        current_adc_val
       );
     }
 
