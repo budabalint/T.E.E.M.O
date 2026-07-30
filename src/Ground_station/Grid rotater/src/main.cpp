@@ -193,7 +193,17 @@ void TaskSensor(void *pvParameters) {
       float sqj = qj * qj;
       float sqk = qk * qk;
 
+      // EREDETI YAW KISZÁMÍTÁSA
       float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
+      
+      // --- JAVÍTÁS: A TENGELY TÜKRÖZÉSE ---
+      raw_yaw = 180.0 - raw_yaw;
+      
+      // Biztosítjuk, hogy a szög mindig 0 és 360 fok között maradjon
+      while (raw_yaw < 0.0) raw_yaw += 360.0;
+      while (raw_yaw >= 360.0) raw_yaw -= 360.0;
+      // ------------------------------------
+
       float raw_pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) * 180.0 / PI;
 
       xSemaphoreTake(dataMutex, portMAX_DELAY);
@@ -214,11 +224,20 @@ void TaskSensor(void *pvParameters) {
 
 void TaskControl(void *pvParameters) {
   static unsigned long lastDebugPrint = 0;
+  
+  // ÚJ VÁLTOZÓK A HISZTERÉZISHEZ ÉS AZ OFFSETHEZ
+  static bool yaw_correcting = false;
+  static bool pitch_correcting = false;
+  static bool offset_updated = false;
+
+  // Belső, precíz toleranciák (Amikor már megindult, idáig fog elmenni, hogy pontos legyen)
+  const float INNER_TOLERANCE = 0.5; // Fél fokos pontosságig teker
+  // Külső tűrés (Ezt a config.h-dból veszi, pl. 5 fok. Csak akkor indul el, ha ennél jobban eltért)
 
   for (;;) {
     bool current_switch = (digitalRead(MODE_SELECTER_BUTTON) == HIGH);
     if (current_switch != last_switch_state) {
-      global_isManual = !global_isManual; // Bárhogy billentem, megfordul a jelenlegi mód
+      global_isManual = !global_isManual; 
       last_switch_state = current_switch;
     }
     bool isManual = global_isManual;
@@ -229,9 +248,9 @@ void TaskControl(void *pvParameters) {
     while (current_yaw < 0.0) current_yaw += 360.0;
 
     if (!tracking_active) {
-            target_yaw = current_yaw;
-            target_pitch = current_pitch;
-        }
+      target_yaw = current_yaw;
+      target_pitch = current_pitch;
+    }
     double t_lat = target_lat;
     double t_lon = target_lon;
     float t_alt = target_alt;
@@ -242,6 +261,7 @@ void TaskControl(void *pvParameters) {
 
     bool hasSignal = (millis() - lastDataTime < 1500);
 
+    // LED Vezérlés (kivágva az egyszerűség kedvéért, az maradhat úgy, ahogy volt)
     uint32_t color = strip.Color(0, 0, 0);
     if (isManual) {
       if (hasSignal) color = strip.Color(0, 0, 255);
@@ -256,119 +276,67 @@ void TaskControl(void *pvParameters) {
     bool r1 = LOW, r2 = LOW, r3 = LOW, r4 = LOW;
 
     if (isManual) {
-      // int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
-      // bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
-      // // 510, 541, 621, 1548, 1677, 1715, 2013, 2866
-      // if (adc_val > 400 && adc_val <= 525) { 
-      //   // Jobboldal
-      //   btn_down = true; 
-      //   btn_right = true; 
-      // } 
-      // else if (adc_val > 525 && adc_val <= 580) { 
-      //   // Bal felső + Jobb alsó
-      //   btn_up = true; 
-      //   btn_right = true; 
-      // } 
-      // else if (adc_val > 580 && adc_val <= 1085) { 
-      //   // Jobb alsó
-      //   btn_right = true; 
-      // } 
-      // else if (adc_val > 1085 && adc_val <= 1612) { 
-      //   // Jobb felső + Bal alsó
-      //   btn_down = true; 
-      //   btn_left = true; 
-      // } 
-      // else if (adc_val > 1612 && adc_val <= 1696) { 
-      //   // Jobb felső
-      //   btn_down = true; 
-      // } 
-      // else if (adc_val > 1696 && adc_val <= 1864) { 
-      //   // Baloldal
-      //   btn_up = true; 
-      //   btn_left = true; 
-      // } 
-      // else if (adc_val > 1864 && adc_val <= 2440) { 
-      //   // Bal felső
-      //   btn_up = true; 
-      // } 
-      // else if (adc_val > 2440 && adc_val <= 3300) { 
-      //   // Bal alsó
-      //   btn_left = true; 
-      // }
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
-      // Határértékek kiszámolva a mért értékek (545, 627, 661, 1255, 1752, 1791, 2103, 2974) közé:
-      if (adc_val > 400 && adc_val <= 586) { 
-        // Mért érték: 545 -> 2 jobb egyszerre (Csak Jobbra)
-        btn_right = true; 
-      } 
-      else if (adc_val > 586 && adc_val <= 644) { 
-        // Mért érték: 627 -> ket also (Csak Lefelé)
-        btn_down = true; 
-      } 
-      else if (adc_val > 644 && adc_val <= 958) { 
-        // Mért érték: 661 -> jobb also (Jobbra + Lefelé)
-        btn_down = true; 
-        btn_right = true; 
-      } 
-      else if (adc_val > 958 && adc_val <= 1503) { 
-        // Mért érték: 1255 -> ket folso (Csak Felfelé)
-        btn_up = true; 
-      } 
-      else if (adc_val > 1503 && adc_val <= 1771) { 
-        // Mért érték: 1752 -> jobb felso (Jobbra + Felfelé)
-        btn_up = true; 
-        btn_right = true; 
-      } 
-      else if (adc_val > 1771 && adc_val <= 1947) { 
-        // Mért érték: 1791 -> 2 bal egyszerre (Csak Balra)
-        btn_left = true; 
-      } 
-      else if (adc_val > 1947 && adc_val <= 2538) { 
-        // Mért érték: 2103 -> bal fölső (Balra + Felfelé)
-        btn_up = true; 
-        btn_left = true; 
-      } 
-      else if (adc_val > 2538 && adc_val <= 3500) { 
-        // Mért érték: 2974 -> bal also (Balra + Lefelé)
-        btn_down = true; 
-        btn_left = true; 
-      }
+      // Gombsor logika (a tied maradhat)
+      if (adc_val > 400 && adc_val <= 586) { btn_right = true; } 
+      else if (adc_val > 586 && adc_val <= 644) { btn_down = true; } 
+      else if (adc_val > 644 && adc_val <= 958) { btn_down = true; btn_right = true; } 
+      else if (adc_val > 958 && adc_val <= 1503) { btn_up = true; } 
+      else if (adc_val > 1503 && adc_val <= 1771) { btn_up = true; btn_right = true; } 
+      else if (adc_val > 1771 && adc_val <= 1947) { btn_left = true; } 
+      else if (adc_val > 1947 && adc_val <= 2538) { btn_up = true; btn_left = true; } 
+      else if (adc_val > 2538 && adc_val <= 3500) { btn_down = true; btn_left = true; }
+
       if (btn_left || btn_right || btn_up || btn_down) {
-        // r1 = btn_left; r2 = btn_right; r3 = btn_up; r4 = btn_down;
-        r1 = btn_right; 
-        r2 = btn_left;  
-        r3 = btn_up; 
-        r4 = btn_down;
+        r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
         tracking_active = true;
+        
+        // Mozgás közben folyamatosan felülírjuk a célt, hogy megálláskor itt akarjon maradni
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         target_yaw = c_yaw;
         target_pitch = c_pitch;
         xSemaphoreGive(dataMutex);
+
+        // Amíg gombot nyomunk, kikapcsoljuk az automatikus korrekciót
+        yaw_correcting = false;
+        pitch_correcting = false;
       } else {
+        // --- JAVÍTOTT HISZTERÉZIS LOGIKA ---
         float yaw_error = target_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
 
-        if (yaw_error > TOLERANCE_YAW) { r1 = HIGH; } 
-        else if (yaw_error < -TOLERANCE_YAW) { r2 = HIGH; }
+        // Csak akkor indul el korrigálni, ha túllépte a külső határt (TOLERANCE_YAW)
+        if (abs(yaw_error) > TOLERANCE_YAW) yaw_correcting = true;
+        // Ha már korrigál, egészen addig megy, amíg el nem éri a belső célt (0.5 fok)
+        else if (abs(yaw_error) < INNER_TOLERANCE) yaw_correcting = false;
+
+        if (yaw_correcting) {
+          if (yaw_error > 0) { r1 = HIGH; } 
+          else { r2 = HIGH; }
+        }
 
         float pitch_error = target_pitch - c_pitch;
-        if (pitch_error > TOLERANCE_PITCH) { r3 = HIGH; } 
-        else if (pitch_error < -TOLERANCE_PITCH) { r4 = HIGH; }
+        if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
+        else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
+
+        if (pitch_correcting) {
+          if (pitch_error > 0) { r3 = HIGH; } 
+          else { r4 = HIGH; }
+        }
       }
 
     } else {
+      // AUTOMATA MÓD - Itt is alkalmazzuk a hiszterézist!
       if (t_lat != 0.0 && t_lon != 0.0) {
         double lat1 = tracker_lat * PI / 180.0;
         double lon1 = tracker_lon * PI / 180.0;
         double lat2 = t_lat * PI / 180.0;
         double lon2 = t_lon * PI / 180.0;
-
         double dLon = lon2 - lon1;
         double dLat = lat2 - lat1;
-
         double y = sin(dLon) * cos(lat2);
         double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
         
@@ -378,7 +346,6 @@ void TaskControl(void *pvParameters) {
         double a = sin(dLat/2) * sin(dLat/2) + cos(lat1) * cos(lat2) * sin(dLon/2) * sin(dLon/2);
         double c = 2 * atan2(sqrt(a), sqrt(1-a));
         double distance_ground = R_EARTH * c;
-
         float calc_pitch = atan2(t_alt - tracker_alt, distance_ground) * 180.0 / PI;
 
         xSemaphoreTake(dataMutex, portMAX_DELAY);
@@ -390,35 +357,60 @@ void TaskControl(void *pvParameters) {
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
 
-        if (yaw_error > TOLERANCE_YAW) { r1 = HIGH; } 
-        else if (yaw_error < -TOLERANCE_YAW) { r2 = HIGH; }
+        if (abs(yaw_error) > TOLERANCE_YAW) yaw_correcting = true;
+        else if (abs(yaw_error) < INNER_TOLERANCE) yaw_correcting = false;
+
+        if (yaw_correcting) {
+          if (yaw_error > 0) { r1 = HIGH; } 
+          else { r2 = HIGH; }
+        }
 
         float pitch_error = calc_pitch - c_pitch;
-        if (pitch_error > TOLERANCE_PITCH) { r3 = HIGH; } 
-        else if (pitch_error < -TOLERANCE_PITCH) { r4 = HIGH; }
+        if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
+        else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
+
+        if (pitch_correcting) {
+          if (pitch_error > 0) { r3 = HIGH; } 
+          else { r4 = HIGH; }
+        }
       }
     }
 
     bool motors_running = (r1 == HIGH || r2 == HIGH || r3 == HIGH || r4 == HIGH);
 
+    // --- JAVÍTOTT OFFSET SZINKRONIZÁLÁS (Csak EGYSZER fut le egy megállás után!) ---
     if (motors_running) {
-        motors_were_running = true;
+      motors_were_running = true;
+      offset_updated = false; // Ha újraindul a motor, engedélyezzük a későbbi frissítést
     } else {
-        if (motors_were_running) {
-            motors_were_running = false;
-            last_motor_stop_time = millis();
-        }
+      if (motors_were_running) {
+        motors_were_running = false;
+        last_motor_stop_time = millis();
+      }
 
-        if (millis() - last_motor_stop_time > 1000) {
-            xSemaphoreTake(dataMutex, portMAX_DELAY);
-          if (mag_accuracy >= 2) {
-              float new_offset = mag_yaw - game_yaw;
-              while (new_offset > 180.0) new_offset -= 360.0;
-              while (new_offset < -180.0) new_offset += 360.0;
-              dynamic_yaw_offset = new_offset;
-            }
-            xSemaphoreGive(dataMutex);
+      // Csak akkor lépünk be, ha letelt az 1 másodperc, ÉS még nem frissítettünk ezen a megálláson
+      if (!offset_updated && (millis() - last_motor_stop_time > 1000)) {
+        offset_updated = true; // Rögtön beállítjuk, hogy többször ne fusson le!
+        
+        xSemaphoreTake(dataMutex, portMAX_DELAY);
+        if (mag_accuracy >= 2) {
+          float new_offset = mag_yaw - game_yaw;
+          while (new_offset > 180.0) new_offset -= 360.0;
+          while (new_offset < -180.0) new_offset += 360.0;
+          
+          float offset_diff = new_offset - dynamic_yaw_offset; // Kiszámoljuk mennyit ugrik a szenzor
+          dynamic_yaw_offset = new_offset;
+
+          // Ha MANUÁLIS módban vagyunk, a kitűzött CÉLT is eltoljuk ugyanannyival!
+          // Így a szinkronizálás miatt nem fog eltérni az error, és nem kezd el magától tekerni.
+          if (isManual) {
+            target_yaw += offset_diff;
+            while (target_yaw >= 360.0) target_yaw -= 360.0;
+            while (target_yaw < 0.0) target_yaw += 360.0;
+          }
         }
+        xSemaphoreGive(dataMutex);
+      }
     }
 
     digitalWrite(relay1, r1);
@@ -428,11 +420,10 @@ void TaskControl(void *pvParameters) {
 
     if (millis() - lastDebugPrint > 1000) {
       lastDebugPrint = millis();
-      Serial.printf("[INFO] Mód: %s | Jel: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | R1:%d R2:%d R3:%d R4:%d\n",
+      Serial.printf("[INFO] Mód: %s | YAW: %05.1f -> CÉL: %05.1f (Err: %05.1f) | PITCH: %05.1f -> CÉL: %05.1f (Err: %05.1f) | MOT: %d%d%d%d\n",
         isManual ? "MANUAL" : "AUTO",
-        hasSignal ? "OK " : "ERR",
-        c_yaw, target_yaw,
-        c_pitch, target_pitch,
+        c_yaw, target_yaw, (target_yaw - c_yaw),
+        c_pitch, target_pitch, (target_pitch - c_pitch),
         r1, r2, r3, r4
       );
     }
