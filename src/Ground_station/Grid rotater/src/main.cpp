@@ -259,43 +259,46 @@ void TaskControl(void *pvParameters) {
 
     bool r1 = LOW, r2 = LOW, r3 = LOW, r4 = LOW;
 
-    if (isManual) {
+    // FAILSAGE: Ha manuál módban vagyunk, VAGY ha AUTO módban megszakadt a kapcsolat (nincs jel)
+    bool active_control_is_manual = isManual || !hasSignal;
+
+    if (active_control_is_manual) {
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
-      // --- Új, kalibrált ADC gombkiosztás ---
+      // --- Kicserélt, megfordított ADC gombkiosztás ---
       
-      // Két jobboldali (Jobb felső + Jobb alsó) ~ 548 -> Jobbra forog + Emelkedik
+      // Két jobboldali (Jobb felső + Jobb alsó) ~ 548 -> Balra forog + Süllyed
       if (adc_val > 450 && adc_val <= 562) { 
-        btn_right = true; btn_up = true; 
-      } 
-      // Bal felső és Jobb alsó ~ 576 -> Balra forog + Emelkedik
-      else if (adc_val > 562 && adc_val <= 619) { 
-        btn_left = true; btn_up = true; 
-      } 
-      // Jobb alsó ~ 662 -> Emelkedik
-      else if (adc_val > 619 && adc_val <= 1096) { 
-        btn_up = true; 
-      } 
-      // Jobb felső és Bal alsó ~ 1530 -> Jobbra forog + Süllyed
-      else if (adc_val > 1096 && adc_val <= 1643) { 
-        btn_right = true; btn_down = true; 
-      } 
-      // Jobb felső ~ 1757 -> Jobbra forog
-      else if (adc_val > 1643 && adc_val <= 1778) { 
-        btn_right = true; 
-      } 
-      // Két baloldali (Bal felső + Bal alsó) ~ 1800 -> Balra forog + Süllyed
-      else if (adc_val > 1778 && adc_val <= 1955) { 
         btn_left = true; btn_down = true; 
       } 
-      // Bal felső ~ 2110 -> Balra forog
-      else if (adc_val > 1955 && adc_val <= 2550) { 
+      // Bal felső és Jobb alsó ~ 576 -> Jobbra forog + Süllyed
+      else if (adc_val > 562 && adc_val <= 619) { 
+        btn_right = true; btn_down = true; 
+      } 
+      // Jobb alsó ~ 662 -> Süllyed
+      else if (adc_val > 619 && adc_val <= 1096) { 
+        btn_down = true; 
+      } 
+      // Jobb felső és Bal alsó ~ 1530 -> Balra forog + Emelkedik
+      else if (adc_val > 1096 && adc_val <= 1643) { 
+        btn_left = true; btn_up = true; 
+      } 
+      // Jobb felső ~ 1757 -> Balra forog
+      else if (adc_val > 1643 && adc_val <= 1778) { 
         btn_left = true; 
       } 
-      // Bal alsó ~ 2990 -> Süllyed
+      // Két baloldali (Bal felső + Bal alsó) ~ 1800 -> Jobbra forog + Emelkedik
+      else if (adc_val > 1778 && adc_val <= 1955) { 
+        btn_right = true; btn_up = true; 
+      } 
+      // Bal felső ~ 2110 -> Jobbra forog
+      else if (adc_val > 1955 && adc_val <= 2550) { 
+        btn_right = true; 
+      } 
+      // Bal alsó ~ 2990 -> Emelkedik
       else if (adc_val > 2550 && adc_val <= 3500) { 
-        btn_down = true; 
+        btn_up = true; 
       }
 
       if (btn_left || btn_right || btn_up || btn_down) {
