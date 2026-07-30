@@ -185,7 +185,7 @@ void TaskSensor(void *pvParameters) {
       float sqj = qj * qj;
       float sqk = qk * qk;
 
-      float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
+      float raw_yaw = -atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
 
       // JAVÍTVA: a 180 fokos eltolás kikerült (feleslegesnek bizonyult),
       // a szög tükrözése nélkül most már helyesen adja vissza a valós irányt.
@@ -263,14 +263,40 @@ void TaskControl(void *pvParameters) {
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
-      if (adc_val > 400 && adc_val <= 586) { btn_right = true; } 
-      else if (adc_val > 586 && adc_val <= 644) { btn_down = true; } 
-      else if (adc_val > 644 && adc_val <= 958) { btn_down = true; btn_right = true; } 
-      else if (adc_val > 958 && adc_val <= 1503) { btn_up = true; } 
-      else if (adc_val > 1503 && adc_val <= 1771) { btn_up = true; btn_right = true; } 
-      else if (adc_val > 1771 && adc_val <= 1947) { btn_left = true; } 
-      else if (adc_val > 1947 && adc_val <= 2538) { btn_up = true; btn_left = true; } 
-      else if (adc_val > 2538 && adc_val <= 3500) { btn_down = true; btn_left = true; }
+      // --- Új, kalibrált ADC gombkiosztás ---
+      
+      // Két jobboldali (Jobb felső + Jobb alsó) ~ 548 -> Jobbra forog + Emelkedik
+      if (adc_val > 450 && adc_val <= 562) { 
+        btn_right = true; btn_up = true; 
+      } 
+      // Bal felső és Jobb alsó ~ 576 -> Balra forog + Emelkedik
+      else if (adc_val > 562 && adc_val <= 619) { 
+        btn_left = true; btn_up = true; 
+      } 
+      // Jobb alsó ~ 662 -> Emelkedik
+      else if (adc_val > 619 && adc_val <= 1096) { 
+        btn_up = true; 
+      } 
+      // Jobb felső és Bal alsó ~ 1530 -> Jobbra forog + Süllyed
+      else if (adc_val > 1096 && adc_val <= 1643) { 
+        btn_right = true; btn_down = true; 
+      } 
+      // Jobb felső ~ 1757 -> Jobbra forog
+      else if (adc_val > 1643 && adc_val <= 1778) { 
+        btn_right = true; 
+      } 
+      // Két baloldali (Bal felső + Bal alsó) ~ 1800 -> Balra forog + Süllyed
+      else if (adc_val > 1778 && adc_val <= 1955) { 
+        btn_left = true; btn_down = true; 
+      } 
+      // Bal felső ~ 2110 -> Balra forog
+      else if (adc_val > 1955 && adc_val <= 2550) { 
+        btn_left = true; 
+      } 
+      // Bal alsó ~ 2990 -> Süllyed
+      else if (adc_val > 2550 && adc_val <= 3500) { 
+        btn_down = true; 
+      }
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
