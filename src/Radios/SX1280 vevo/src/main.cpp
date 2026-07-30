@@ -84,7 +84,7 @@ void setFlag(void) {
 void setupRadio() {
   Serial.println("--- SX1280 Inicializalasa folyamatban... ---");
   
-  int state = radio.beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
+  int state = radio.beginFLRC(2485.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
   
   if (state != RADIOLIB_ERR_NONE) {
     Serial.print("Hiba az inicializalas soran! Hibakod: ");
