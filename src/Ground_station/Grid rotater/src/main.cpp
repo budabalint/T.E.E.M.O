@@ -185,11 +185,10 @@ void TaskSensor(void *pvParameters) {
       float sqj = qj * qj;
       float sqk = qk * qk;
 
-      float raw_yaw = -atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
-      
-      // JAVÍTÁS: Nincs tükrözés, csak egy sima 180 fokos eltolás, 
-      // mert a szenzor háttal van a gép orrának!
-      raw_yaw += 180.0;
+      float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
+
+      // JAVÍTVA: a 180 fokos eltolás kikerült (feleslegesnek bizonyult),
+      // a szög tükrözése nélkül most már helyesen adja vissza a valós irányt.
       while (raw_yaw >= 360.0) raw_yaw -= 360.0;
       while (raw_yaw < 0.0) raw_yaw += 360.0;
 
@@ -275,7 +274,9 @@ void TaskControl(void *pvParameters) {
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
-        tracking_active = false;   // <-- itt volt "true", ezt kell false-ra tenni
+        // JAVÍTVA: manuális gombnyomás után NE maradjon aktív a korrekció,
+        // különben a motor "hintázni" kezd a gomb elengedése után.
+        tracking_active = false;
 
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         target_yaw = c_yaw;
@@ -285,7 +286,7 @@ void TaskControl(void *pvParameters) {
         yaw_correcting = false;
         pitch_correcting = false;
         yaw_dir = 0;
-      }else {
+      } else {
         float yaw_error = target_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
@@ -297,8 +298,10 @@ void TaskControl(void *pvParameters) {
           if (abs(yaw_error) < 175.0 || yaw_dir == 0) {
             yaw_dir = (yaw_error > 0) ? 1 : 2; 
           }
-          if (yaw_dir == 1) { r1 = HIGH; } 
-          else { r2 = HIGH; }
+          // JAVÍTVA: yaw relék felcserélve, mert a motor fizikai forgásiránya
+          // ellentétes volt a kód eredeti feltételezéséhez képest.
+          if (yaw_dir == 1) { r2 = HIGH; } 
+          else { r1 = HIGH; }
         } else {
           yaw_dir = 0; 
         }
@@ -348,8 +351,9 @@ void TaskControl(void *pvParameters) {
           if (abs(yaw_error) < 175.0 || yaw_dir == 0) {
             yaw_dir = (yaw_error > 0) ? 1 : 2;
           }
-          if (yaw_dir == 1) { r1 = HIGH; } 
-          else { r2 = HIGH; }
+          // JAVÍTVA: yaw relék felcserélve, ugyanaz az ok, mint fentebb.
+          if (yaw_dir == 1) { r2 = HIGH; } 
+          else { r1 = HIGH; }
         } else {
           yaw_dir = 0;
         }
