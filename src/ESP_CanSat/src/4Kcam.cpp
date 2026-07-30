@@ -155,7 +155,7 @@ void Maincam::sendNALPacket(byte* data, int len, bool newNAL) {
 
         packetBuffer[PACKET_SIZE - 1] = currentCRC;
 
-        Serial.write(packetBuffer, PACKET_SIZE);
+        //Serial.write(packetBuffer, PACKET_SIZE);
 
         seq++;
         offset += chunkLen;

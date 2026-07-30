@@ -33,7 +33,7 @@ VideoRadio::~VideoRadio() {
 
 bool VideoRadio::begin() {
     if (xSemaphoreTake(spiMutex, portMAX_DELAY) == pdTRUE) {
-        int state = _radio->beginFLRC(2440.0, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
+        int state = _radio->beginFLRC(2485, 1300, 2, 0, 16, RADIOLIB_SHAPING_0_5);
         if (state != RADIOLIB_ERR_NONE) {
             Serial.printf("[RÁDIÓ] Hiba az inicializáláskor! Kód: %d\n", state);
             xSemaphoreGive(spiMutex);

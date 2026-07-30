@@ -130,7 +130,7 @@ void ReadThermalCam(void *pvParameters) {
                 }
             }
             frameSeq++;
-        }1
+        }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
@@ -171,8 +171,6 @@ void TaskVideoSender(void *pvParameters) {
     }
 }
 
-void TaskFlightController(void *pvParameters);
-
 void setup() {
     if (!LittleFS.begin(false)) {
         Serial.println("Hiba: LittleFS mount failed!");
@@ -192,6 +190,7 @@ void setup() {
     //digitalWrite(BNO_RST, HIGH);0
     delay(1000);
     canSat.begin();
+    digitalWrite(CAM_POWER_PIN, LOW);
     delay(100);
     cam.begin(1000000);
     delay(100);
