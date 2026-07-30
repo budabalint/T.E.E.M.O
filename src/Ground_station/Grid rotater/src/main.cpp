@@ -193,16 +193,12 @@ void TaskSensor(void *pvParameters) {
       float sqj = qj * qj;
       float sqk = qk * qk;
 
-      // EREDETI YAW KISZÁMÍTÁSA
       float raw_yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) * 180.0 / PI;
       
-      // --- JAVÍTÁS: A TENGELY TÜKRÖZÉSE ---
-      raw_yaw = 180.0 - raw_yaw;
-      
-      // Biztosítjuk, hogy a szög mindig 0 és 360 fok között maradjon
-      while (raw_yaw < 0.0) raw_yaw += 360.0;
-      while (raw_yaw >= 360.0) raw_yaw -= 360.0;
-      // ------------------------------------
+      // JAVÍTÁS: Szenzor szoftveres megfordítása 180 fokkal, 
+      // mert fizikailag háttal van felszerelve a gép orrához képest!
+      raw_yaw += 180.0;
+      if (raw_yaw >= 360.0) raw_yaw -= 360.0;
 
       float raw_pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) * 180.0 / PI;
 
@@ -225,14 +221,12 @@ void TaskSensor(void *pvParameters) {
 void TaskControl(void *pvParameters) {
   static unsigned long lastDebugPrint = 0;
   
-  // ÚJ VÁLTOZÓK A HISZTERÉZISHEZ ÉS AZ OFFSETHEZ
   static bool yaw_correcting = false;
   static bool pitch_correcting = false;
   static bool offset_updated = false;
+  static int yaw_dir = 0; // 0 = Áll, 1 = Jobbra, 2 = Balra (Harcsa védelem)
 
-  // Belső, precíz toleranciák (Amikor már megindult, idáig fog elmenni, hogy pontos legyen)
-  const float INNER_TOLERANCE = 0.5; // Fél fokos pontosságig teker
-  // Külső tűrés (Ezt a config.h-dból veszi, pl. 5 fok. Csak akkor indul el, ha ennél jobban eltért)
+  const float INNER_TOLERANCE = 0.5; // Belső precíz tűréshatár
 
   for (;;) {
     bool current_switch = (digitalRead(MODE_SELECTER_BUTTON) == HIGH);
@@ -261,7 +255,6 @@ void TaskControl(void *pvParameters) {
 
     bool hasSignal = (millis() - lastDataTime < 1500);
 
-    // LED Vezérlés (kivágva az egyszerűség kedvéért, az maradhat úgy, ahogy volt)
     uint32_t color = strip.Color(0, 0, 0);
     if (isManual) {
       if (hasSignal) color = strip.Color(0, 0, 255);
@@ -279,7 +272,6 @@ void TaskControl(void *pvParameters) {
       int adc_val = getAveragedADC(ANALOG_BUTTON, 16);
       bool btn_left = false, btn_right = false, btn_up = false, btn_down = false;
 
-      // Gombsor logika (a tied maradhat)
       if (adc_val > 400 && adc_val <= 586) { btn_right = true; } 
       else if (adc_val > 586 && adc_val <= 644) { btn_down = true; } 
       else if (adc_val > 644 && adc_val <= 958) { btn_down = true; btn_right = true; } 
@@ -293,31 +285,34 @@ void TaskControl(void *pvParameters) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
         tracking_active = true;
         
-        // Mozgás közben folyamatosan felülírjuk a célt, hogy megálláskor itt akarjon maradni
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         target_yaw = c_yaw;
         target_pitch = c_pitch;
         xSemaphoreGive(dataMutex);
 
-        // Amíg gombot nyomunk, kikapcsoljuk az automatikus korrekciót
         yaw_correcting = false;
         pitch_correcting = false;
+        yaw_dir = 0;
       } else {
-        // --- JAVÍTOTT HISZTERÉZIS LOGIKA ---
+        // --- MANUÁLIS YAW KORREKCIÓ (HARCSA VÉDELEMMEL) ---
         float yaw_error = target_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
 
-        // Csak akkor indul el korrigálni, ha túllépte a külső határt (TOLERANCE_YAW)
         if (abs(yaw_error) > TOLERANCE_YAW) yaw_correcting = true;
-        // Ha már korrigál, egészen addig megy, amíg el nem éri a belső célt (0.5 fok)
         else if (abs(yaw_error) < INNER_TOLERANCE) yaw_correcting = false;
 
         if (yaw_correcting) {
-          if (yaw_error > 0) { r1 = HIGH; } 
+          if (abs(yaw_error) < 175.0 || yaw_dir == 0) {
+            yaw_dir = (yaw_error > 0) ? 1 : 2; 
+          }
+          if (yaw_dir == 1) { r1 = HIGH; } 
           else { r2 = HIGH; }
+        } else {
+          yaw_dir = 0; 
         }
 
+        // --- MANUÁLIS PITCH KORREKCIÓ ---
         float pitch_error = target_pitch - c_pitch;
         if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
         else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
@@ -329,14 +324,16 @@ void TaskControl(void *pvParameters) {
       }
 
     } else {
-      // AUTOMATA MÓD - Itt is alkalmazzuk a hiszterézist!
+      // --- AUTOMATA KÖVETŐ MÓD ---
       if (t_lat != 0.0 && t_lon != 0.0) {
         double lat1 = tracker_lat * PI / 180.0;
         double lon1 = tracker_lon * PI / 180.0;
         double lat2 = t_lat * PI / 180.0;
         double lon2 = t_lon * PI / 180.0;
+
         double dLon = lon2 - lon1;
         double dLat = lat2 - lat1;
+
         double y = sin(dLon) * cos(lat2);
         double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
         
@@ -346,6 +343,7 @@ void TaskControl(void *pvParameters) {
         double a = sin(dLat/2) * sin(dLat/2) + cos(lat1) * cos(lat2) * sin(dLon/2) * sin(dLon/2);
         double c = 2 * atan2(sqrt(a), sqrt(1-a));
         double distance_ground = R_EARTH * c;
+
         float calc_pitch = atan2(t_alt - tracker_alt, distance_ground) * 180.0 / PI;
 
         xSemaphoreTake(dataMutex, portMAX_DELAY);
@@ -353,6 +351,7 @@ void TaskControl(void *pvParameters) {
         target_pitch = calc_pitch;
         xSemaphoreGive(dataMutex);
 
+        // --- AUTOMATA YAW KORREKCIÓ (HARCSA VÉDELEMMEL) ---
         float yaw_error = calc_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
@@ -361,10 +360,16 @@ void TaskControl(void *pvParameters) {
         else if (abs(yaw_error) < INNER_TOLERANCE) yaw_correcting = false;
 
         if (yaw_correcting) {
-          if (yaw_error > 0) { r1 = HIGH; } 
+          if (abs(yaw_error) < 175.0 || yaw_dir == 0) {
+            yaw_dir = (yaw_error > 0) ? 1 : 2;
+          }
+          if (yaw_dir == 1) { r1 = HIGH; } 
           else { r2 = HIGH; }
+        } else {
+          yaw_dir = 0;
         }
 
+        // --- AUTOMATA PITCH KORREKCIÓ ---
         float pitch_error = calc_pitch - c_pitch;
         if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
         else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
@@ -378,19 +383,18 @@ void TaskControl(void *pvParameters) {
 
     bool motors_running = (r1 == HIGH || r2 == HIGH || r3 == HIGH || r4 == HIGH);
 
-    // --- JAVÍTOTT OFFSET SZINKRONIZÁLÁS (Csak EGYSZER fut le egy megállás után!) ---
     if (motors_running) {
       motors_were_running = true;
-      offset_updated = false; // Ha újraindul a motor, engedélyezzük a későbbi frissítést
+      offset_updated = false; 
     } else {
       if (motors_were_running) {
         motors_were_running = false;
         last_motor_stop_time = millis();
       }
 
-      // Csak akkor lépünk be, ha letelt az 1 másodperc, ÉS még nem frissítettünk ezen a megálláson
+      // Csak 1x frissíti a pozíciót miután megállt (Szellem-mozgás elleni védelem)
       if (!offset_updated && (millis() - last_motor_stop_time > 1000)) {
-        offset_updated = true; // Rögtön beállítjuk, hogy többször ne fusson le!
+        offset_updated = true; 
         
         xSemaphoreTake(dataMutex, portMAX_DELAY);
         if (mag_accuracy >= 2) {
@@ -398,11 +402,9 @@ void TaskControl(void *pvParameters) {
           while (new_offset > 180.0) new_offset -= 360.0;
           while (new_offset < -180.0) new_offset += 360.0;
           
-          float offset_diff = new_offset - dynamic_yaw_offset; // Kiszámoljuk mennyit ugrik a szenzor
+          float offset_diff = new_offset - dynamic_yaw_offset; 
           dynamic_yaw_offset = new_offset;
 
-          // Ha MANUÁLIS módban vagyunk, a kitűzött CÉLT is eltoljuk ugyanannyival!
-          // Így a szinkronizálás miatt nem fog eltérni az error, és nem kezd el magától tekerni.
           if (isManual) {
             target_yaw += offset_diff;
             while (target_yaw >= 360.0) target_yaw -= 360.0;
@@ -420,10 +422,10 @@ void TaskControl(void *pvParameters) {
 
     if (millis() - lastDebugPrint > 1000) {
       lastDebugPrint = millis();
-      Serial.printf("[INFO] Mód: %s | YAW: %05.1f -> CÉL: %05.1f (Err: %05.1f) | PITCH: %05.1f -> CÉL: %05.1f (Err: %05.1f) | MOT: %d%d%d%d\n",
+      Serial.printf("[INFO] Mód: %s | YAW: %05.1f -> CÉL: %05.1f | PITCH: %05.1f -> CÉL: %05.1f | MOT: %d%d%d%d\n",
         isManual ? "MANUAL" : "AUTO",
-        c_yaw, target_yaw, (target_yaw - c_yaw),
-        c_pitch, target_pitch, (target_pitch - c_pitch),
+        c_yaw, target_yaw,
+        c_pitch, target_pitch,
         r1, r2, r3, r4
       );
     }
