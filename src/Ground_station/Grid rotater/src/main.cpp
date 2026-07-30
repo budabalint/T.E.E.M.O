@@ -50,6 +50,7 @@ float dynamic_yaw_offset = 0.0;
 
 bool motors_were_running = false;
 unsigned long last_motor_stop_time = 0;
+bool target_is_absolute = false; // Megjegyzi, hogy fix weblapos célt követünk-e
 
 uint8_t mag_accuracy = 0;
 
@@ -80,25 +81,22 @@ int getAveragedADC(uint8_t pin, int samples = 16) {
 
 void TaskUART(void *pvParameters) {
   for (;;) {
-    // 1. Dobjuk el a memóriában ragadt szemetet, amíg nem találunk egy 0xAA start byte-ot
     while (Serial1.available() > 0 && Serial1.peek() != 0xAA) {
       Serial1.read();
     }
 
-    if (Serial1.available() >= 2) { // Kell legalább a Start Marker és az ID
+    if (Serial1.available() >= 2) { 
       uint8_t start = Serial1.read();
       uint8_t packet_id = Serial1.read();
       int payload_size = -1;
 
-      // Hány byte payload jön az adott parancs után? (CRC NINCS BENNE!)
       if (packet_id == 0x55 || packet_id == 0x66) payload_size = 20; 
       else if (packet_id == 0x33) payload_size = 1;  
       else if (packet_id == 0x44) payload_size = 9;  
-      else if (packet_id == 0x88) payload_size = 0;  // <-- A Te 3 byte-os lekérdezésed (0 payload)
+      else if (packet_id == 0x88) payload_size = 0;  
 
       if (payload_size != -1) {
         unsigned long startTime = millis();
-        // Várjuk meg, amíg befut a payload ÉS a +1 byte CRC
         while (Serial1.available() < payload_size + 1) {
           if (millis() - startTime > 100) break; 
           vTaskDelay(1 / portTICK_PERIOD_MS);
@@ -106,9 +104,9 @@ void TaskUART(void *pvParameters) {
 
         if (Serial1.available() >= payload_size + 1) {
           uint8_t buffer[32];
-          buffer[0] = start;       // 0xAA
-          buffer[1] = packet_id;   // 0x88
-          Serial1.readBytes(&buffer[2], payload_size + 1); // CRC beolvasása
+          buffer[0] = start;       
+          buffer[1] = packet_id;   
+          Serial1.readBytes(&buffer[2], payload_size + 1); 
 
           uint8_t calculatedCRC = calculateCRC8(buffer, payload_size + 2);
           uint8_t receivedCRC = buffer[payload_size + 2];
@@ -117,7 +115,6 @@ void TaskUART(void *pvParameters) {
             xSemaphoreTake(dataMutex, portMAX_DELAY);
             lastUARTDataTime = millis();
             
-            // --- Csomagok feldolgozása ---
             if (packet_id == 0x55 || packet_id == 0x66) {
               float p_alt; double p_lat, p_lon;
               memcpy(&p_alt, &buffer[2], 4);
@@ -144,12 +141,10 @@ void TaskUART(void *pvParameters) {
               while(target_yaw < 0.0) target_yaw += 360.0;
               
               global_isManual = true;
-              tracking_active = true; // Élesedik a követés!
+              tracking_active = true; 
+              target_is_absolute = true; // <--- JAVÍTÁS: A weblapos parancs ABSZOLÚT!
             }
-            // (Ha a packet_id 0x88, nincs más teendő, mint válaszolni)
 
-            // --- VÁLASZ KÜLDÉSE ---
-            // Bármilyen érvényes csomag jön (köztük a 0x88 lekérdezés is), visszaküldjük a telemetriát!
             TelemetryPacket txPacket;
             txPacket.startMarker = 0xBB;
             txPacket.Packet_ID = 0x77;
@@ -160,12 +155,10 @@ void TaskUART(void *pvParameters) {
 
             txPacket.checksum = calculateCRC8((uint8_t*)&txPacket, sizeof(TelemetryPacket) - 1);
             
-            // Adat kiküldése és hardveres puffer kényszerített ürítése
             Serial1.write((uint8_t*)&txPacket, sizeof(TelemetryPacket));
             Serial1.flush(); 
 
           } else {
-            // Hibakereséshez: ha rossz a számítás, ezt látod a konzolban
             Serial.printf("UART Hiba: CRC nem egyezik! Kapott: %02X, Szamolt: %02X\n", receivedCRC, calculatedCRC);
           }
         }
@@ -227,9 +220,9 @@ void TaskControl(void *pvParameters) {
   static bool yaw_correcting = false;
   static bool pitch_correcting = false;
   static bool offset_updated = false;
-  static int yaw_dir = 0; // 0 = Áll, 1 = Jobbra, 2 = Balra (Harcsa védelem)
+  static int yaw_dir = 0; 
 
-  const float INNER_TOLERANCE = 0.5; // Belső precíz tűréshatár
+  const float INNER_TOLERANCE = 0.5; 
 
   for (;;) {
     bool current_switch = (digitalRead(MODE_SELECTER_BUTTON) == HIGH);
@@ -286,18 +279,18 @@ void TaskControl(void *pvParameters) {
 
       if (btn_left || btn_right || btn_up || btn_down) {
         r1 = btn_right; r2 = btn_left; r3 = btn_up; r4 = btn_down;
-        tracking_active = true;
         
         xSemaphoreTake(dataMutex, portMAX_DELAY);
+        tracking_active = true;
         target_yaw = c_yaw;
         target_pitch = c_pitch;
+        target_is_absolute = false; // <--- JAVÍTÁS: Joystickos vezérlés, nem fix cél
         xSemaphoreGive(dataMutex);
 
         yaw_correcting = false;
         pitch_correcting = false;
         yaw_dir = 0;
       } else {
-        // --- MANUÁLIS YAW KORREKCIÓ (HARCSA VÉDELEMMEL) ---
         float yaw_error = target_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
@@ -315,7 +308,6 @@ void TaskControl(void *pvParameters) {
           yaw_dir = 0; 
         }
 
-        // --- MANUÁLIS PITCH KORREKCIÓ ---
         float pitch_error = target_pitch - c_pitch;
         if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
         else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
@@ -327,16 +319,13 @@ void TaskControl(void *pvParameters) {
       }
 
     } else {
-      // --- AUTOMATA KÖVETŐ MÓD ---
       if (t_lat != 0.0 && t_lon != 0.0) {
         double lat1 = tracker_lat * PI / 180.0;
         double lon1 = tracker_lon * PI / 180.0;
         double lat2 = t_lat * PI / 180.0;
         double lon2 = t_lon * PI / 180.0;
-
         double dLon = lon2 - lon1;
         double dLat = lat2 - lat1;
-
         double y = sin(dLon) * cos(lat2);
         double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
         
@@ -346,7 +335,6 @@ void TaskControl(void *pvParameters) {
         double a = sin(dLat/2) * sin(dLat/2) + cos(lat1) * cos(lat2) * sin(dLon/2) * sin(dLon/2);
         double c = 2 * atan2(sqrt(a), sqrt(1-a));
         double distance_ground = R_EARTH * c;
-
         float calc_pitch = atan2(t_alt - tracker_alt, distance_ground) * 180.0 / PI;
 
         xSemaphoreTake(dataMutex, portMAX_DELAY);
@@ -354,7 +342,6 @@ void TaskControl(void *pvParameters) {
         target_pitch = calc_pitch;
         xSemaphoreGive(dataMutex);
 
-        // --- AUTOMATA YAW KORREKCIÓ (HARCSA VÉDELEMMEL) ---
         float yaw_error = calc_yaw - c_yaw;
         while (yaw_error > 180.0) yaw_error -= 360.0;
         while (yaw_error < -180.0) yaw_error += 360.0;
@@ -372,7 +359,6 @@ void TaskControl(void *pvParameters) {
           yaw_dir = 0;
         }
 
-        // --- AUTOMATA PITCH KORREKCIÓ ---
         float pitch_error = calc_pitch - c_pitch;
         if (abs(pitch_error) > TOLERANCE_PITCH) pitch_correcting = true;
         else if (abs(pitch_error) < INNER_TOLERANCE) pitch_correcting = false;
@@ -395,7 +381,6 @@ void TaskControl(void *pvParameters) {
         last_motor_stop_time = millis();
       }
 
-      // Csak 1x frissíti a pozíciót miután megállt (Szellem-mozgás elleni védelem)
       if (!offset_updated && (millis() - last_motor_stop_time > 1000)) {
         offset_updated = true; 
         
@@ -408,7 +393,11 @@ void TaskControl(void *pvParameters) {
           float offset_diff = new_offset - dynamic_yaw_offset; 
           dynamic_yaw_offset = new_offset;
 
-          if (isManual) {
+          // <--- JAVÍTÁS LÉNYEGE ITT VAN --->
+          // CSAK AKKOR toljuk el a célt (hogy egyhelyben maradjon a gép), ha
+          // a joystickkal engedtük el. Ha Webről jött abszolút fok, akkor HAGYJUK ÉRINTETLENÜL
+          // a target_yaw-t, így a motorok visszakorrigálják a gépet, ha elmászna!
+          if (isManual && !target_is_absolute) {
             target_yaw += offset_diff;
             while (target_yaw >= 360.0) target_yaw -= 360.0;
             while (target_yaw < 0.0) target_yaw += 360.0;
