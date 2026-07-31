@@ -48,7 +48,7 @@ void CanSat::begin() {
 }
 
 void CanSat::InaBegin() {
-    if (_ina12v.begin(500, 0.150)) {
+    if (_ina12v.begin(0.5, 0.150)) {
         Serial.println("INA_12V sikeresen elindult!");
         ina12v_ok = true;
     } else {
