@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "ESP32_P4") (type "KiCad") (uri "${KIPRJMOD}/panel.symbols/ESP32_P4.kicad_sym") (options "") (descr ""))
+)

@@ -1,0 +1,258 @@
+
+(kicad_symbol_lib (version 20211014) (generator kicad_symbol_editor)
+  (symbol "AD7091R-8BCPZ-RL7" (pin_names (offset 1.016)) (in_bom yes) (on_board yes)
+    (property "Reference" "U" (id 0) (at -17.78 26.035 0)
+      (effects (font (size 1.27 1.27)) (justify bottom left))
+    )
+    (property "Value" "AD7091R-8BCPZ-RL7" (id 1) (at -17.78 -27.94 0)
+      (effects (font (size 1.27 1.27)) (justify bottom left))
+    )
+    (property "Footprint" "AD7091R-8BCPZ-RL7:QFN50P400X400X80-25N" (id 2) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MF" "Analog Devices" (id 4) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MAXIMUM_PACKAGE_HEIGHT" "0.80 mm" (id 5) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Package" "LFCSP -24 Analog Devices" (id 6) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Price" "None" (id 7) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Check_prices" "https://www.snapeda.com/parts/AD7091R-8BCPZ-RL7/Analog+Devices/view-part/?ref=eda" (id 8) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "STANDARD" "IPC-7351B" (id 9) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "PARTREV" "D" (id 10) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "SnapEDA_Link" "https://www.snapeda.com/parts/AD7091R-8BCPZ-RL7/Analog+Devices/view-part/?ref=snap" (id 11) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MP" "AD7091R-8BCPZ-RL7" (id 12) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Purchase-URL" "https://www.snapeda.com/api/url_track_click_mouser/?unipart_id=1056990&manufacturer=Analog Devices&part_name=AD7091R-8BCPZ-RL7&search_term=ad7091r-8" (id 13) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Description" "\n                        \n                            8-Channel, 1 MSPS, Ultralow Power, 12-Bit ADC in 24-Lead TSSOP\n                        \n" (id 14) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Availability" "In Stock" (id 15) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MANUFACTURER" "Analog Devices" (id 16) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (symbol "AD7091R-8BCPZ-RL7_0_0"
+      (rectangle (start -17.78 -25.4) (end 17.78 25.4)
+        (stroke (width 0.254)) (fill (type background))
+      )
+      (pin output line (at 22.86 15.24 180.0) (length 5.08)
+        (name "REGCAP"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "2"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin power_in line (at 22.86 22.86 180.0) (length 5.08)
+        (name "VDD"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "1"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin output line (at 22.86 10.16 180.0) (length 5.08)
+        (name "REFIN/REFOUT"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "3"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin output line (at 22.86 -2.54 180.0) (length 5.08)
+        (name "GPO1"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "13"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin output line (at 22.86 5.08 180.0) (length 5.08)
+        (name "MUXOUT"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "5"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 7.62 0) (length 5.08)
+        (name "ADCIN"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "16"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 2.54 0) (length 5.08)
+        (name "VIN0"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "6"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at 22.86 -10.16 180.0) (length 5.08)
+        (name "SDI"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "18"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -2.54 0) (length 5.08)
+        (name "VIN2"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "7"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin output line (at 22.86 -7.62 180.0) (length 5.08)
+        (name "SDO"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "19"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin output line (at 22.86 0.0 180.0) (length 5.08)
+        (name "ALERT/BUSY/GPO0"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "8"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input clock (at 22.86 -12.7 180.0) (length 5.08)
+        (name "SCLK"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "20"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at 22.86 -15.24 180.0) (length 5.08)
+        (name "~{CS}"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "23"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 10.16 0) (length 5.08)
+        (name "~{CONVST}"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "21"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 15.24 0) (length 5.08)
+        (name "~{RESET}"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "24"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin power_in line (at 22.86 20.32 180.0) (length 5.08)
+        (name "VDRIVE"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "22"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin power_in line (at 22.86 -22.86 180.0) (length 5.08)
+        (name "GND"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "4"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin power_in line (at 22.86 -22.86 180.0) (length 5.08) hide
+        (name "GND"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "17"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 0.0 0) (length 5.08)
+        (name "VIN1"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "15"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -5.08 0) (length 5.08)
+        (name "VIN3"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "14"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -7.62 0) (length 5.08)
+        (name "VIN4"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "9"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -10.16 0) (length 5.08)
+        (name "VIN5"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "12"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -12.7 0) (length 5.08)
+        (name "VIN6"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "10"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin input line (at -22.86 -15.24 0) (length 5.08)
+        (name "VIN7"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "11"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin power_in line (at 22.86 -20.32 180.0) (length 5.08)
+        (name "EPAD"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "25"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+    )
+  )
+)
