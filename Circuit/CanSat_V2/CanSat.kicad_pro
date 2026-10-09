@@ -17,7 +17,7 @@
         "copper_text_upright": false,
         "courtyard_line_width": 0.05,
         "dimension_precision": 4,
-        "dimension_units": 3,
+        "dimension_units": 2,
         "dimensions": {
           "arrow_length": 1270000,
           "extension_offset": 500000,
@@ -61,7 +61,7 @@
           "hatch_smoothing_value": 0.1,
           "hatch_thickness": 1.0,
           "min_clearance": 0.0,
-          "min_island_area": 10.0,
+          "min_island_area": 9.99999999996,
           "min_thickness": 0.25,
           "pad_connection": 1,
           "remove_islands": 0,
@@ -591,7 +591,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "gerbers/v0.0.3",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
@@ -606,7 +606,7 @@
       "method": 0,
       "sort_order": 0
     },
-    "bom_export_filename": "${PROJECTNAME}.csv",
+    "bom_export_filename": "CanSat.csv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": ",",
@@ -629,33 +629,21 @@
         },
         {
           "group_by": false,
-          "label": "Qty",
-          "name": "${QUANTITY}",
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
           "show": true
         },
         {
-          "group_by": true,
+          "group_by": false,
           "label": "Value",
           "name": "Value",
           "show": true
         },
         {
-          "group_by": true,
-          "label": "DNP",
-          "name": "${DNP}",
-          "show": true
-        },
-        {
-          "group_by": true,
-          "label": "Exclude from BOM",
-          "name": "${EXCLUDE_FROM_BOM}",
-          "show": true
-        },
-        {
-          "group_by": true,
-          "label": "Exclude from Board",
-          "name": "${EXCLUDE_FROM_BOARD}",
-          "show": true
+          "group_by": false,
+          "label": "Datasheet",
+          "name": "Datasheet",
+          "show": false
         },
         {
           "group_by": true,
@@ -665,129 +653,51 @@
         },
         {
           "group_by": false,
-          "label": "Datasheet",
-          "name": "Datasheet",
+          "label": "Exclude from BOM",
+          "name": "${EXCLUDE_FROM_BOM}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Exclude from Simulation",
+          "name": "${EXCLUDE_FROM_SIM}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "LCSC Part",
+          "name": "LCSC Part",
           "show": true
         },
         {
           "group_by": false,
-          "label": "ARROW_PRICE-STOCK",
-          "name": "ARROW_PRICE-STOCK",
+          "label": "Link",
+          "name": "Link",
           "show": false
         },
         {
           "group_by": false,
-          "label": "Availability",
-          "name": "Availability",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Check_prices",
-          "name": "Check_prices",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "HEIGHT",
-          "name": "HEIGHT",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MANUFACTURER",
-          "name": "MANUFACTURER",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MANUFACTURER_NAME",
-          "name": "MANUFACTURER_NAME",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MANUFACTURER_PART_NUMBER",
-          "name": "MANUFACTURER_PART_NUMBER",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MAXIMUM_PACKAGE_HEIGHT",
-          "name": "MAXIMUM_PACKAGE_HEIGHT",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MF",
-          "name": "MF",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MOUSER_PART_NUMBER",
-          "name": "MOUSER_PART_NUMBER",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MOUSER_PRICE-STOCK",
-          "name": "MOUSER_PRICE-STOCK",
+          "label": "Cikkszám",
+          "name": "Cikkszám",
           "show": false
         },
         {
           "group_by": false,
           "label": "MP",
-          "name": "MP",
-          "show": false
+          "name": "MPN",
+          "show": true
         },
         {
           "group_by": false,
-          "label": "Package",
-          "name": "Package",
-          "show": false
+          "label": "Qty",
+          "name": "${QUANTITY}",
+          "show": true
         },
         {
           "group_by": false,
-          "label": "PARTREV",
-          "name": "PARTREV",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Price",
-          "name": "Price",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Purchase-URL",
-          "name": "Purchase-URL",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "SnapEDA_Link",
-          "name": "SnapEDA_Link",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "SNAPEDA_PN",
-          "name": "SNAPEDA_PN",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "STANDARD",
-          "name": "STANDARD",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "ARROW_PART_NUMBER",
-          "name": "ARROW_PART_NUMBER",
-          "show": false
+          "label": "Exclude from Board",
+          "name": "${EXCLUDE_FROM_BOARD}",
+          "show": true
         },
         {
           "group_by": false,
@@ -797,8 +707,14 @@
         },
         {
           "group_by": false,
-          "label": "#",
-          "name": "${ITEM_NUMBER}",
+          "label": "Do Not Place",
+          "name": "${DNP}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer",
+          "name": "Manufacturer",
           "show": false
         }
       ],
@@ -858,7 +774,7 @@
         "uuid": "8017d61f-eead-4e70-98a2-af111708d497"
       }
     ],
-    "used_designators": "R1-6,IC1-2,J1,U1-16,MT1,SW1",
+    "used_designators": "",
     "variants": [
       {
         "name": "Flexi Panel"
@@ -871,40 +787,88 @@
       "CanSat"
     ],
     [
-      "01b78d74-afaf-4491-a952-9ee1b3b48fa4",
-      "psu"
+      "4524be53-c9d0-4623-b297-7f70d4d52ad9",
+      "Panel1_MCU"
     ],
     [
-      "73aa3d1c-4ae7-44a8-90c4-5868882ff8e1",
-      "gas_sensors"
+      "fe790f51-4f2a-47ce-bbec-a32fb9cde983",
+      "GPS"
     ],
     [
-      "3aa74f26-0f42-46af-9b37-33c4234e7d0c",
-      "3_SX12xx_Series_radio"
+      "b97925a5-9d07-4943-b995-6cece8e561fa",
+      "I2C_Sensors"
+    ],
+    [
+      "d04305eb-7ff5-4077-87fb-0fa8c87529a8",
+      "SPI_Sensors"
+    ],
+    [
+      "60062b2d-3219-405d-8ca5-59a3b64a01f3",
+      "Lepton_SiPM_Power"
+    ],
+    [
+      "9e5f233f-3a27-4ad8-a40c-32064b5dd986",
+      "C6_Programmer"
+    ],
+    [
+      "5e1cba15-2052-4a54-8386-675a4fc1107b",
+      "P4_Dual_USB"
+    ],
+    [
+      "349883bc-daef-4c85-acd6-24a61e54d219",
+      "SPI_to_UART"
+    ],
+    [
+      "f5f58481-8099-4252-8255-b7ede9b67840",
+      "Panel2_COM"
     ],
     [
       "27e7ef6c-4aa7-427b-8461-fc37996a7785",
       "LTE_modem"
     ],
     [
-      "011e3943-6a94-45d7-87a4-f471d369fe3a",
+      "1b107002-22b5-4a2a-84e3-9a317fb4b52c",
+      "Panel3_GLM-PSU"
+    ],
+    [
+      "1365a2b0-9648-443b-8115-a625e7997738",
+      "GLM_670"
+    ],
+    [
+      "9fae84d9-59b3-43d6-8bfd-0e5ab32f9651",
+      "Power_Connector"
+    ],
+    [
+      "e70dce63-670e-444e-8fc9-a09b39780903",
+      "3.3V_PSU"
+    ],
+    [
+      "56d98cf8-a25e-4899-82e6-0730abc5be21",
+      "Radio_current_meter"
+    ],
+    [
+      "59f01553-0cb9-42c6-93e1-feb2aa931994",
+      "ESP_current_meter"
+    ],
+    [
+      "4a49d0ee-6325-45c7-9d71-dff1e7883166",
+      "Panel4_BAT_Plate"
+    ],
+    [
+      "f1d06197-608c-471a-9fa2-2f4815eae4dd",
       "SiPM_detectors"
     ],
     [
-      "b05d85a8-d52d-4002-b88c-f70bc5a19676",
-      "FLIR_Lepton_3.1R"
+      "b6b22e10-d772-4978-9bf9-9f600e278231",
+      "Gamma Ch"
     ],
     [
-      "b73b11cb-ec22-400f-80cc-af9616be7582",
-      "Display"
+      "b1e018dc-1f10-4edb-bd5f-2c9f83a42289",
+      "Müon Ch"
     ],
     [
-      "0cea8380-b11f-4264-8f51-3c2886368079",
-      "Processor"
-    ],
-    [
-      "fe790f51-4f2a-47ce-bbec-a32fb9cde983",
-      "GPS"
+      "f609f9a7-00d7-4534-aaf1-26a951fa3f7a",
+      "Panel5_FLIR"
     ]
   ],
   "text_variables": {},

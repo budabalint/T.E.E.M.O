@@ -1,0 +1,335 @@
+(footprint "OPTO-SMD_4P-MICROFC-60035-SMT-TR"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -6.85 0)
+		(layer "F.SilkS")
+		(uuid "58b6b789-e187-46c1-8b16-f1a56390481c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "OPTO-SMD_4P-MICROFC-60035-SMT-TR"
+		(at 0 6.85 0)
+		(layer "F.Fab")
+		(uuid "34fe01e3-5336-48d2-b296-b0a54028f4dd")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "a89cb499-96b0-4002-bb7a-0f2e7dc439fa")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9636b274-4614-41b2-b34b-b0a4dae867e2")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "LCSC Part" "C603293"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f8144efc-349a-4961-85e4-30770a631c28")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -3.5 -3.5)
+		(end -3.5 -3.48)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "9dea9da7-e616-4841-87c0-5a56fdeb794a")
+	)
+	(fp_line
+		(start -3.5 -3.5)
+		(end -1.63 -3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a4c4f8ee-e169-4c82-9775-5c33252342e3")
+	)
+	(fp_line
+		(start -3.5 -3.48)
+		(end -3.5 -3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "6430efea-bb7e-4238-abdc-d4fa30fec344")
+	)
+	(fp_line
+		(start -3.5 -1.63)
+		(end -3.5 -2.22)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "3b631f57-27e6-4939-99f6-66eec918fa38")
+	)
+	(fp_line
+		(start -3.5 3.5)
+		(end -3.5 1.63)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "7f21e2bd-bd9a-416a-a85d-1f265e810eba")
+	)
+	(fp_line
+		(start -3.48 3.5)
+		(end -3.5 3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "7c0a840b-5cb1-46c3-9ee6-0d427988cb71")
+	)
+	(fp_line
+		(start -1.63 3.5)
+		(end -2.22 3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "f1b964a8-f8b7-44e9-9d77-100398b0c3a6")
+	)
+	(fp_line
+		(start 1.63 -3.5)
+		(end 2.22 -3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "45f9f9ce-bd62-4e61-babc-7af1ab862907")
+	)
+	(fp_line
+		(start 3.48 -3.5)
+		(end 3.55 -3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "79d6e622-1d90-4965-90c7-731a6b4b5f19")
+	)
+	(fp_line
+		(start 3.55 -3.5)
+		(end 3.55 -1.63)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "96f91c6b-03b8-4abb-8f88-7c4ae0ed4f65")
+	)
+	(fp_line
+		(start 3.55 1.63)
+		(end 3.55 2.22)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "72c9c51c-7776-4555-90e8-64ae92cefa67")
+	)
+	(fp_line
+		(start 3.55 3.48)
+		(end 3.55 3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "bdac3d3b-cf8a-4910-b29c-e3b7b5341e11")
+	)
+	(fp_line
+		(start 3.55 3.5)
+		(end 1.63 3.5)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e4f3cbd6-277b-489f-9392-90b9f93ba13a")
+	)
+	(fp_circle
+		(center -3.5 3.5)
+		(end -3.47 3.5)
+		(stroke
+			(width 0.06)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "351d4b54-7c8c-4aa6-9804-ce1f77617ad5")
+	)
+	(fp_circle
+		(center -1.9 2.65)
+		(end -1.7 2.65)
+		(stroke
+			(width 0.4)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "d932d0d8-90d8-4e0e-9cd6-696beac6fd82")
+	)
+	(fp_circle
+		(center -1.9 2.65)
+		(end -1.7 2.65)
+		(stroke
+			(width 0.4)
+			(type solid)
+		)
+		(fill no)
+		(layer "Cmts.User")
+		(uuid "57dd9e10-6207-4f09-9a9c-0228bb93c5d2")
+	)
+	(fp_line
+		(start -3.5 -3.5)
+		(end -3.5 3.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "ae152c07-cb42-4257-ad5e-1badc6dcb0a8")
+	)
+	(fp_line
+		(start -3.5 3.5)
+		(end 3.5 3.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "e44991ad-2893-427a-83ea-2007608833a1")
+	)
+	(fp_line
+		(start 3.5 -3.5)
+		(end -3.5 -3.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "d043bfb6-0e4b-4d48-9dfb-822dec156a38")
+	)
+	(fp_line
+		(start 3.5 3.5)
+		(end 3.5 -3.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "3a18e6f3-3c00-4896-ae1f-3f2843b218bc")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "007f1c12-b942-4231-9256-b46f9d622992")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -2.85 2.69)
+		(size 0.8 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d40f9d67-43ac-42d2-92ac-d2e10467b37d")
+	)
+	(pad "2" smd rect
+		(at 2.69 2.85 90)
+		(size 0.8 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "1c8b710c-7765-44c8-b550-d9d07550241e")
+	)
+	(pad "3" smd rect
+		(at 2.85 -2.69)
+		(size 0.8 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "52aa3180-2e1c-4b5c-8aa4-ac5df3024d1b")
+	)
+	(pad "4" smd rect
+		(at -2.69 -2.85)
+		(size 2 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "9a95bdb6-d12a-4ee6-9e38-8fd72c41f9da")
+	)
+	(pad "5" smd custom
+		(at 0 0)
+		(size 0.005 0.005)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(thermal_bridge_angle 90)
+		(options
+			(clearance outline)
+			(anchor circle)
+		)
+		(primitives
+			(gr_poly
+				(pts
+					(xy 1.400048 -1.400099) (xy 1.400048 -3.500095) (xy -1.399946 -3.500069) (xy -1.399921 -1.400099)
+					(xy -3.499942 -1.400099) (xy -3.499942 1.399896) (xy -1.399921 1.399896) (xy -1.399896 3.499917)
+					(xy 1.400048 3.499891) (xy 1.400048 1.399896) (xy 3.500044 1.399896) (xy 3.500044 -1.400099)
+				)
+				(width 0.1)
+				(fill yes)
+			)
+		)
+		(uuid "f3d00fb7-16d9-4583-a647-2923769191e4")
+	)
+	(embedded_fonts no)
+	(model "D:/Data/T.E.E.M.O/Circuit/CanSat_V2/panel.3dshapes/OPTO-SMD_4P-MICROFC-60035-SMT-TR.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
