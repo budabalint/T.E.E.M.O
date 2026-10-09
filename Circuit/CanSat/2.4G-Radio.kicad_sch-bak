@@ -1,0 +1,74 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "5453ddbd-0150-4879-a0d0-6cc06506c2d7")
+	(paper "A4")
+	(lib_symbols)
+	(hierarchical_label "SPI_MISO"
+		(shape input)
+		(at 20.32 19.05 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "313872da-9967-4528-abf2-2454c8764ae5")
+	)
+	(hierarchical_label "EN"
+		(shape input)
+		(at 20.32 31.75 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6c6e2b6c-c9ac-4ab5-a2fd-8d2753f39f6d")
+	)
+	(hierarchical_label "CS"
+		(shape input)
+		(at 20.32 26.67 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6c85fc7f-a6a8-4f3c-b6bb-4e254b85bd17")
+	)
+	(hierarchical_label "SPI_CLK"
+		(shape input)
+		(at 20.32 24.13 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "a302261b-8e26-4bd7-9059-b8320db0c749")
+	)
+	(hierarchical_label "INT"
+		(shape input)
+		(at 20.32 29.21 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b92d9007-5431-427d-9e76-ff45020243ed")
+	)
+	(hierarchical_label "SPI_MOSI"
+		(shape input)
+		(at 20.32 21.59 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e125a552-5e12-4320-b215-1525c74b4224")
+	)
+)
