@@ -9,6 +9,8 @@ INA_Sensor::INA_Sensor(uint8_t address) : _ina(address) {
 }
 
 bool INA_Sensor::begin(float current, float resistor) {
+    Wire.begin();
+    
     if (!_ina.begin()) {
         return false;
     }
@@ -36,7 +38,7 @@ float INA_Sensor::GetVoltage() {
 }
 
 float INA_Sensor::GetCurrent() {
-    return _current;
+    return _current*1000;
 }
 
 float INA_Sensor::GetPower() {
